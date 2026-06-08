@@ -1,0 +1,815 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>myglimmer — one small joy, shared with the world</title>
+<meta name="description" content="Share one thing that gave you joy today. Anonymous, fleeting, real.">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --cream: #FAF7F2;
+    --warm-white: #FFFDF9;
+    --ink: #1C1A17;
+    --ink-light: #6B6560;
+    --amber: #E8A838;
+    --amber-light: #F5D78A;
+    --rose: #E87060;
+    --sage: #7B9E87;
+    --heart: #E8606A;
+    --border: rgba(28,26,23,0.1);
+    --shadow: 0 2px 20px rgba(28,26,23,0.07);
+    --shadow-lift: 0 8px 40px rgba(28,26,23,0.12);
+  }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--cream);
+    color: var(--ink);
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  .page {
+    max-width: 680px;
+    margin: 0 auto;
+    padding: 48px 24px 120px;
+    position: relative;
+    z-index: 1;
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 48px;
+  }
+
+  .logo {
+    font-family: 'Lora', serif;
+    font-size: 42px;
+    font-weight: 600;
+    letter-spacing: -1px;
+    color: var(--ink);
+    line-height: 1;
+    margin-bottom: 6px;
+  }
+
+  .logo span { color: var(--amber); }
+
+  .tagline {
+    font-size: 14px;
+    color: var(--ink-light);
+    font-weight: 300;
+    letter-spacing: 0.02em;
+  }
+
+  /* Compose */
+  .compose {
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+    margin-bottom: 40px;
+    box-shadow: var(--shadow);
+  }
+
+  .username-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+
+  .avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+  }
+
+  .username-display {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink);
+  }
+
+  .regenerate-btn {
+    margin-left: auto;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 11px;
+    color: var(--ink-light);
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    transition: all 0.15s;
+  }
+  .regenerate-btn:hover { background: var(--cream); color: var(--ink); }
+
+  .prompt-label {
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 15px;
+    color: var(--ink-light);
+    margin-bottom: 10px;
+    display: block;
+  }
+
+  textarea {
+    width: 100%;
+    border: none;
+    outline: none;
+    resize: none;
+    font-family: 'Lora', serif;
+    font-size: 17px;
+    line-height: 1.6;
+    color: var(--ink);
+    background: transparent;
+    min-height: 72px;
+  }
+
+  textarea::placeholder { color: #C5BFB5; }
+
+  .compose-footer {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .char-count {
+    font-size: 12px;
+    color: var(--ink-light);
+    transition: color 0.2s;
+  }
+  .char-count.warn { color: var(--rose); }
+
+  .submit-btn {
+    background: var(--ink);
+    color: var(--warm-white);
+    border: none;
+    border-radius: 100px;
+    padding: 10px 22px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .submit-btn:hover { background: #2E2C28; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(28,26,23,0.2); }
+  .submit-btn:active { transform: translateY(0); }
+  .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+
+  /* Flying card */
+  .flying-card {
+    position: fixed;
+    z-index: 1000;
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 20px;
+    box-shadow: var(--shadow-lift);
+    pointer-events: none;
+  }
+
+  /* Feed */
+  .feed-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .feed-label {
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--ink-light);
+  }
+
+  .feed-line { flex: 1; height: 1px; background: var(--border); }
+
+  .live-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--sage);
+    animation: pulse 2s infinite;
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* Cards */
+  .glimmer-card {
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 20px 22px;
+    margin-bottom: 12px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.2s, transform 0.2s;
+    animation: cardEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .glimmer-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-1px); }
+
+  @keyframes cardEnter {
+    from { opacity: 0; transform: translateY(20px) scale(0.97); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
+  .card-top {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    margin-bottom: 12px;
+  }
+
+  .card-avatar {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    flex-shrink: 0;
+  }
+
+  .card-meta { flex: 1; }
+
+  .card-username { font-size: 13px; font-weight: 500; color: var(--ink); }
+  .card-date { font-size: 11px; color: var(--ink-light); font-weight: 300; }
+
+  .card-text {
+    font-family: 'Lora', serif;
+    font-size: 16px;
+    line-height: 1.65;
+    color: var(--ink);
+    margin-bottom: 14px;
+  }
+
+  .card-actions { display: flex; align-items: center; gap: 6px; }
+
+  .heart-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink-light);
+    transition: all 0.2s;
+  }
+
+  .heart-btn:hover { border-color: var(--heart); color: var(--heart); background: rgba(232,96,106,0.05); }
+  .heart-btn.hearted { background: rgba(232,96,106,0.08); border-color: rgba(232,96,106,0.3); color: var(--heart); }
+  .heart-btn .heart-icon { font-size: 14px; transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1); }
+  .heart-btn:active .heart-icon { transform: scale(1.4); }
+
+  .report-btn {
+    margin-left: auto;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 13px;
+    color: #C5BFB5;
+    padding: 4px;
+    border-radius: 4px;
+    transition: color 0.15s;
+  }
+  .report-btn:hover { color: var(--rose); }
+
+  /* Sparkles */
+  .sparkle-container { position: fixed; pointer-events: none; z-index: 2000; }
+  .sparkle {
+    position: absolute;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    animation: sparkleOut 0.6s ease-out forwards;
+  }
+  @keyframes sparkleOut {
+    0% { transform: translate(0,0) scale(1); opacity: 1; }
+    100% { transform: translate(var(--tx), var(--ty)) scale(0); opacity: 0; }
+  }
+
+  /* Empty + loading states */
+  .empty {
+    text-align: center;
+    padding: 48px 0;
+    color: var(--ink-light);
+  }
+  .empty .icon { font-size: 36px; margin-bottom: 12px; }
+  .empty p { font-family: 'Lora', serif; font-style: italic; font-size: 15px; }
+
+  /* Toast */
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(80px);
+    background: var(--ink);
+    color: var(--warm-white);
+    padding: 10px 20px;
+    border-radius: 100px;
+    font-size: 13px;
+    transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
+    z-index: 3000;
+    white-space: nowrap;
+  }
+  .toast.show { transform: translateX(-50%) translateY(0); }
+
+  /* Report modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(28,26,23,0.4);
+    z-index: 4000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+  }
+  .modal-overlay.open { display: flex; }
+
+  .modal {
+    background: var(--warm-white);
+    border-radius: 16px;
+    padding: 28px;
+    max-width: 380px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(28,26,23,0.2);
+  }
+
+  .modal h3 { font-family: 'Lora', serif; font-size: 18px; margin-bottom: 8px; }
+  .modal p { font-size: 13px; color: var(--ink-light); line-height: 1.5; margin-bottom: 20px; }
+  .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
+
+  .btn-secondary {
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 8px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--ink-light);
+    transition: all 0.15s;
+  }
+  .btn-secondary:hover { background: var(--cream); }
+
+  .btn-danger {
+    background: var(--rose);
+    border: none;
+    border-radius: 100px;
+    padding: 8px 18px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    color: white;
+    font-weight: 500;
+    transition: all 0.15s;
+  }
+  .btn-danger:hover { background: #d45545; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <header>
+    <div class="logo">my glim<span>✦</span>mer</div>
+    <div class="tagline">one small joy, shared with the world</div>
+  </header>
+
+  <div class="compose" id="composeBox">
+    <div class="username-row">
+      <div class="avatar" id="myAvatar"></div>
+      <div>
+        <div class="username-display" id="myUsernameDisplay"></div>
+        <div style="font-size:11px;color:var(--ink-light);font-weight:300;margin-top:1px;">your anonymous name for this session</div>
+      </div>
+      <button class="regenerate-btn" onclick="regenerateUsername()">↻ new name</button>
+    </div>
+    <span class="prompt-label">My glimmer of the day was...</span>
+    <textarea id="glimmerInput" placeholder="a stranger held the door open and smiled at me" maxlength="180" oninput="onInput()" rows="3"></textarea>
+    <div class="compose-footer">
+      <span class="char-count" id="charCount">180 left</span>
+      <button class="submit-btn" id="submitBtn" onclick="submitGlimmer()" disabled>
+        <span>✦</span> Share glimmer
+      </button>
+    </div>
+  </div>
+
+  <div class="feed-header">
+    <div class="live-dot"></div>
+    <span class="feed-label">Today's glimmers</span>
+    <div class="feed-line"></div>
+  </div>
+
+  <div id="feed">
+    <div class="empty"><div class="icon">✦</div><p>Loading glimmers...</p></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="modal-overlay" id="reportModal">
+  <div class="modal">
+    <h3>Report this glimmer?</h3>
+    <p>If this content feels harmful, hateful, or unwelcoming, let us know. We review all reports and remove content that doesn't belong here.</p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeReport()">Cancel</button>
+      <button class="btn-danger" onclick="confirmReport()">Yes, report it</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ─── Supabase ────────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'YOUR_SUPABASE_URL';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+// ─── Session identity ────────────────────────────────────────────────────────
+// Stable UUID per browser (persists across tab closes, unlike sessionStorage)
+function getSessionId() {
+  let id = localStorage.getItem('glimmer_session_id');
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem('glimmer_session_id', id);
+  }
+  return id;
+}
+const SESSION_ID = getSessionId();
+
+// ─── Username (session-bound, resets on tab close) ───────────────────────────
+const adjectives = ['wandering','golden','quiet','morning','gentle','luminous','soft','drifting','amber','rosy','silver','tender','wild','coastal','misty','velvet','sunlit','breezy','dreamy','mossy'];
+const nouns = ['sparrow','fig','kumquat','meadow','pebble','lantern','birch','current','ember','fern','crest','willow','bloom','cedar','brook','heron','vale','clover','solstice','dune'];
+const avatarEmojis = ['🌿','🍋','🌸','✨','🍂','🌊','🪷','🌻','🍃','🌙','🦋','🐚','🌾','🍄','🌷'];
+
+function generateUsername() {
+  const a = adjectives[Math.floor(Math.random() * adjectives.length)];
+  const n = nouns[Math.floor(Math.random() * nouns.length)];
+  return a + '_' + n;
+}
+
+function getAvatarEmoji(username) {
+  let hash = 0;
+  for (let c of username) hash = (hash * 31 + c.charCodeAt(0)) % avatarEmojis.length;
+  return avatarEmojis[Math.abs(hash)];
+}
+
+function getAvatarColor(username) {
+  const colors = ['#F5D78A','#BFDBCA','#F5C4BF','#C4D4F0','#E8D5C0','#D5C4E8'];
+  let hash = 0;
+  for (let c of username) hash = (hash * 17 + c.charCodeAt(0)) % colors.length;
+  return colors[Math.abs(hash)];
+}
+
+let myUsername = sessionStorage.getItem('glimmer_username') || generateUsername();
+sessionStorage.setItem('glimmer_username', myUsername);
+
+function regenerateUsername() {
+  myUsername = generateUsername();
+  sessionStorage.setItem('glimmer_username', myUsername);
+  renderMyUsername();
+  showToast('New name generated ✦');
+}
+
+function renderMyUsername() {
+  document.getElementById('myAvatar').textContent = getAvatarEmoji(myUsername);
+  document.getElementById('myAvatar').style.background = getAvatarColor(myUsername);
+  document.getElementById('myUsernameDisplay').textContent = myUsername;
+}
+
+renderMyUsername();
+
+// ─── Hearted glimmers (tracked locally for UI state) ────────────────────────
+function getHeartedIds() {
+  try { return new Set(JSON.parse(localStorage.getItem('glimmer_hearted') || '[]')); }
+  catch { return new Set(); }
+}
+
+function markHearted(id) {
+  const ids = getHeartedIds();
+  ids.add(id);
+  localStorage.setItem('glimmer_hearted', JSON.stringify([...ids]));
+}
+
+// ─── Input ───────────────────────────────────────────────────────────────────
+function onInput() {
+  const val = document.getElementById('glimmerInput').value;
+  const remaining = 180 - val.length;
+  const cc = document.getElementById('charCount');
+  cc.textContent = remaining + ' left';
+  cc.className = 'char-count' + (remaining < 30 ? ' warn' : '');
+  document.getElementById('submitBtn').disabled = val.trim().length === 0;
+}
+
+// ─── Moderation (client-side pre-filter) ────────────────────────────────────
+const blocklist = ['kill yourself','kys','nigger','faggot'];
+function moderateText(text) {
+  const lower = text.toLowerCase();
+  return blocklist.some(w => lower.includes(w));
+}
+
+// ─── Submit ──────────────────────────────────────────────────────────────────
+async function submitGlimmer() {
+  const input = document.getElementById('glimmerInput');
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (moderateText(text)) {
+    showToast('This glimmer doesn\'t feel right for this space 💛');
+    return;
+  }
+
+  const btn = document.getElementById('submitBtn');
+  btn.disabled = true;
+
+  const newPost = { username: myUsername, text, hearts: 0 };
+
+  flyCard(newPost, async () => {
+    const { data, error } = await db
+      .from('glimmers')
+      .insert([{ username: myUsername, text }])
+      .select()
+      .single();
+
+    if (error) {
+      showToast('Something went wrong. Try again?');
+      btn.disabled = false;
+      return;
+    }
+
+    input.value = '';
+    onInput();
+    showToast('Your glimmer is out in the world ✦');
+    // Real-time will add the card; no need to manually prepend
+  });
+}
+
+// ─── Flying card animation ───────────────────────────────────────────────────
+function flyCard(post, onComplete) {
+  const composeBox = document.getElementById('composeBox');
+  const rect = composeBox.getBoundingClientRect();
+
+  const flying = document.createElement('div');
+  flying.className = 'flying-card';
+  flying.style.cssText = `left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;`;
+  flying.innerHTML = `
+    <div style="font-family:'Lora',serif;font-size:14px;color:#6B6560;font-style:italic;margin-bottom:8px;">My glimmer of the day was...</div>
+    <div style="font-family:'Lora',serif;font-size:16px;line-height:1.6;color:#1C1A17;">${escapeHtml(post.text)}</div>
+  `;
+  document.body.appendChild(flying);
+
+  const feedEl = document.getElementById('feed');
+  const feedRect = feedEl.getBoundingClientRect();
+  const dy = feedRect.top - rect.top;
+
+  flying.animate([
+    { transform: 'translateY(0) scale(1)', opacity: 1 },
+    { transform: `translateY(${dy * 0.45}px) scale(1.04)`, opacity: 1, offset: 0.4 },
+    { transform: `translateY(${dy}px) scale(0.9)`, opacity: 0 }
+  ], {
+    duration: 700,
+    easing: 'cubic-bezier(0.4,0,0.2,1)',
+    fill: 'forwards'
+  }).onfinish = () => {
+    flying.remove();
+    onComplete();
+  };
+}
+
+// ─── Heart ───────────────────────────────────────────────────────────────────
+async function heartGlimmer(id, btn) {
+  const hearted = getHeartedIds();
+  if (hearted.has(id)) return;
+
+  // Optimistic UI update
+  btn.classList.add('hearted');
+  btn.querySelector('.heart-icon').textContent = '♥';
+  const countEl = btn.querySelector('.heart-count');
+  countEl.textContent = parseInt(countEl.textContent) + 1;
+  btn.disabled = true;
+  markHearted(id);
+
+  // Insert heart record (DB unique constraint prevents duplicates)
+  const { error: heartError } = await db
+    .from('hearts')
+    .insert([{ glimmer_id: id, session_id: SESSION_ID }]);
+
+  if (heartError && heartError.code !== '23505') {
+    // 23505 = unique violation (already hearted) — that's fine, ignore
+    // anything else, revert
+    btn.classList.remove('hearted');
+    btn.querySelector('.heart-icon').textContent = '♡';
+    countEl.textContent = parseInt(countEl.textContent) - 1;
+    btn.disabled = false;
+    return;
+  }
+
+  // Increment hearts count on glimmer
+  await db.rpc('increment_hearts', { glimmer_id: id });
+
+  spawnSparkles(
+    btn.getBoundingClientRect().left + btn.getBoundingClientRect().width / 2,
+    btn.getBoundingClientRect().top + btn.getBoundingClientRect().height / 2
+  );
+}
+
+// ─── Sparkles ────────────────────────────────────────────────────────────────
+function spawnSparkles(x, y) {
+  const colors = ['#E8A838','#E8606A','#7B9E87','#F5D78A'];
+  const container = document.createElement('div');
+  container.className = 'sparkle-container';
+  container.style.left = x + 'px';
+  container.style.top = y + 'px';
+  document.body.appendChild(container);
+  for (let i = 0; i < 8; i++) {
+    const s = document.createElement('div');
+    s.className = 'sparkle';
+    const angle = (i / 8) * Math.PI * 2;
+    const dist = 30 + Math.random() * 25;
+    s.style.background = colors[i % colors.length];
+    s.style.setProperty('--tx', Math.cos(angle) * dist + 'px');
+    s.style.setProperty('--ty', Math.sin(angle) * dist + 'px');
+    s.style.left = '-3px';
+    s.style.top = '-3px';
+    s.style.animationDelay = (i * 40) + 'ms';
+    container.appendChild(s);
+  }
+  setTimeout(() => container.remove(), 800);
+}
+
+// ─── Report ──────────────────────────────────────────────────────────────────
+let pendingReportId = null;
+
+function reportGlimmer(id) {
+  pendingReportId = id;
+  document.getElementById('reportModal').classList.add('open');
+}
+
+function closeReport() {
+  pendingReportId = null;
+  document.getElementById('reportModal').classList.remove('open');
+}
+
+async function confirmReport() {
+  if (!pendingReportId) return;
+  await db.from('reports').insert([{ glimmer_id: pendingReportId, session_id: SESSION_ID }]);
+  closeReport();
+  showToast('Reported. Thank you for keeping this a good space 💛');
+}
+
+// ─── Toast ───────────────────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  clearTimeout(toastTimer);
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  toastTimer = setTimeout(() => t.classList.remove('show'), 3200);
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+function escapeHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function formatDate(ts) {
+  const d = new Date(ts);
+  const now = new Date();
+  const diffMins = Math.floor((now - d) / 60000);
+  if (diffMins < 1) return 'just now';
+  if (diffMins < 60) return diffMins + 'm ago';
+  const diffHrs = Math.floor(diffMins / 60);
+  if (diffHrs < 24) return diffHrs + 'h ago';
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+}
+
+function buildCard(post, animate) {
+  const hearted = getHeartedIds().has(post.id);
+  const card = document.createElement('div');
+  card.className = 'glimmer-card';
+  card.dataset.id = post.id;
+  if (!animate) card.style.animation = 'none';
+  card.innerHTML = `
+    <div class="card-top">
+      <div class="card-avatar" style="background:${getAvatarColor(post.username)}">${getAvatarEmoji(post.username)}</div>
+      <div class="card-meta">
+        <div class="card-username">${escapeHtml(post.username)}</div>
+        <div class="card-date">${formatDate(post.created_at)}</div>
+      </div>
+    </div>
+    <div class="card-text">${escapeHtml(post.text)}</div>
+    <div class="card-actions">
+      <button class="heart-btn ${hearted ? 'hearted' : ''}"
+        onclick="heartGlimmer('${post.id}', this)"
+        ${hearted ? 'disabled' : ''}>
+        <span class="heart-icon">${hearted ? '♥' : '♡'}</span>
+        <span class="heart-count">${post.hearts || 0}</span>
+      </button>
+      <button class="report-btn" onclick="reportGlimmer('${post.id}')" title="Report this glimmer">⚑</button>
+    </div>
+  `;
+  return card;
+}
+
+// ─── Initial load ─────────────────────────────────────────────────────────────
+async function loadGlimmers() {
+  const { data, error } = await db
+    .from('glimmers')
+    .select('*')
+    .eq('reported', false)
+    .order('created_at', { ascending: false })
+    .limit(50);
+
+  const feed = document.getElementById('feed');
+
+  if (error || !data || data.length === 0) {
+    feed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>No glimmers yet. Share the first one.</p></div>`;
+    return;
+  }
+
+  feed.innerHTML = '';
+  data.forEach((post, i) => {
+    const card = buildCard(post, false);
+    card.style.animationDelay = `${i * 50}ms`;
+    card.style.animation = `cardEnter 0.5s cubic-bezier(0.34,1.56,0.64,1) ${i * 50}ms both`;
+    feed.appendChild(card);
+  });
+}
+
+// ─── Real-time subscription ───────────────────────────────────────────────────
+function subscribeToGlimmers() {
+  db.channel('glimmers-feed')
+    .on('postgres_changes', {
+      event: 'INSERT',
+      schema: 'public',
+      table: 'glimmers'
+    }, (payload) => {
+      const feed = document.getElementById('feed');
+      // Remove empty state if present
+      const empty = feed.querySelector('.empty');
+      if (empty) empty.remove();
+      // Prepend new card
+      const card = buildCard(payload.new, true);
+      feed.insertBefore(card, feed.firstChild);
+      // Sparkle the new card
+      setTimeout(() => {
+        const rect = card.getBoundingClientRect();
+        spawnSparkles(rect.left + rect.width / 2, rect.top + 40);
+      }, 500);
+    })
+    .on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'glimmers'
+    }, (payload) => {
+      // Update heart count on existing card without re-rendering
+      const card = document.querySelector(`[data-id="${payload.new.id}"]`);
+      if (card) {
+        const countEl = card.querySelector('.heart-count');
+        if (countEl) countEl.textContent = payload.new.hearts;
+      }
+    })
+    .subscribe();
+}
+
+// ─── Boot ─────────────────────────────────────────────────────────────────────
+loadGlimmers();
+subscribeToGlimmers();
+</script>
+</body>
+</html>
