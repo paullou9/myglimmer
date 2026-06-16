@@ -562,6 +562,36 @@ const adjectives = ['wandering','golden','quiet','morning','gentle','luminous','
 const nouns = ['sparrow','fig','kumquat','meadow','pebble','lantern','birch','current','ember','fern','crest','willow','bloom','cedar','brook','heron','vale','clover','solstice','dune'];
 const avatarEmojis = ['🌿','🍋','🌸','✨','🍂','🌊','🪷','🌻','🍃','🌙','🦋','🐚','🌾','🍄','🌷'];
 
+// ─── Ghost prompt (placeholder, session-bound) ───────────────────────────────
+const placeholderPrompts = [
+  'a stranger held the door open and smiled at me',
+  'the coffee was exactly the right temperature this morning',
+  'i heard a song i had forgotten i loved',
+  'sunlight came through the leaves on my walk',
+  'someone laughed and it made me laugh too',
+  'the first sip of tea while it was still raining',
+  'a dog leaned its whole weight against my leg',
+  'i caught the bus right as it pulled up',
+  'the sky turned pink for a few minutes at dusk',
+  'an old friend texted out of nowhere',
+  'the bread was still warm from the oven',
+  'i found a five in a coat i hadn’t worn since winter',
+  'a kid waved at me from a passing car',
+  'the room smelled like someone was baking',
+  'i finished the book and just sat with it for a while',
+];
+
+function pickPrompt() {
+  return placeholderPrompts[Math.floor(Math.random() * placeholderPrompts.length)];
+}
+
+let myPrompt = sessionStorage.getItem('glimmer_prompt') || pickPrompt();
+sessionStorage.setItem('glimmer_prompt', myPrompt);
+
+function applyPromptPlaceholder() {
+  document.getElementById('glimmerInput').placeholder = myPrompt;
+}
+
 function generateUsername() {
   const a = adjectives[Math.floor(Math.random() * adjectives.length)];
   const n = nouns[Math.floor(Math.random() * nouns.length)];
@@ -598,6 +628,7 @@ function renderMyUsername() {
 }
 
 renderMyUsername();
+applyPromptPlaceholder();
 
 // ─── Hearted glimmers (tracked locally for UI state) ────────────────────────
 function getHeartedIds() {
@@ -862,10 +893,12 @@ function buildCard(post, animate) {
 
 // ─── Initial load ─────────────────────────────────────────────────────────────
 async function loadGlimmers() {
+  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
   const { data, error } = await db
     .from('glimmers')
     .select('*')
     .eq('reported', false)
+    .gte('created_at', since)
     .order('created_at', { ascending: false })
     .limit(50);
 
