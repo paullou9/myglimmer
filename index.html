@@ -6,7 +6,7 @@
 <title>myglimmer — one small joy, shared with the world</title>
 <meta name="description" content="Share one thing that gave you joy today. Anonymous, fleeting, real.">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,600;1,400&family=Instrument+Serif:ital@0;1&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -45,21 +45,27 @@
   .page {
     max-width: 680px;
     margin: 0 auto;
-    padding: 48px 24px 120px;
+    padding: 32px 44px 140px;
     position: relative;
     z-index: 1;
   }
 
   header {
+    position: sticky;
+    top: 0;
+    z-index: 400;
     text-align: center;
-    margin-bottom: 48px;
+    background: var(--cream);
+    padding: 22px 0 16px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
   }
 
   .logo {
-    font-family: 'Lora', serif;
-    font-size: 42px;
-    font-weight: 600;
-    letter-spacing: -1px;
+    font-family: 'Instrument Serif', serif;
+    font-size: 46px;
+    font-weight: 400;
+    letter-spacing: -0.5px;
     color: var(--ink);
     line-height: 1;
     margin-bottom: 6px;
@@ -123,9 +129,9 @@
   .regenerate-btn:hover { background: var(--cream); color: var(--ink); }
 
   .prompt-label {
-    font-family: 'Lora', serif;
+    font-family: 'Times New Roman', Times, serif;
     font-style: italic;
-    font-size: 15px;
+    font-size: 16px;
     color: var(--ink-light);
     margin-bottom: 10px;
     display: block;
@@ -136,7 +142,7 @@
     border: none;
     outline: none;
     resize: none;
-    font-family: 'Lora', serif;
+    font-family: 'Times New Roman', Times, serif;
     font-size: 17px;
     line-height: 1.6;
     color: var(--ink);
@@ -193,47 +199,29 @@
     pointer-events: none;
   }
 
-  /* Feed */
-  .feed-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 20px;
-  }
-
-  .feed-label {
-    font-size: 11px;
-    font-weight: 500;
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-    color: var(--ink-light);
-  }
-
-  .feed-line { flex: 1; height: 1px; background: var(--border); }
-
   .menu-wrap {
     position: fixed;
     top: 20px;
-    left: 20px;
+    right: 20px;
     z-index: 500;
   }
 
   .hamburger-btn {
-    background: none;
+    background: var(--warm-white);
     border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 7px 9px;
+    border-radius: 10px;
+    padding: 9px 12px;
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 6px;
     transition: background 0.15s;
   }
   .hamburger-btn:hover { background: var(--cream); }
   .hamburger-btn span {
     display: block;
-    width: 20px;
-    height: 2.5px;
+    width: 26px;
+    height: 3px;
     background: var(--ink-light);
     border-radius: 2px;
     transition: background 0.15s;
@@ -242,7 +230,7 @@
 
   .menu-dropdown {
     position: absolute;
-    left: 0;
+    right: 0;
     top: calc(100% + 8px);
     background: var(--warm-white);
     border: 1px solid var(--border);
@@ -272,19 +260,6 @@
   }
   .menu-item:hover { background: var(--cream); }
   .menu-item.active { color: var(--amber); font-weight: 500; }
-
-  .live-dot {
-    width: 6px;
-    height: 6px;
-    border-radius: 50%;
-    background: var(--sage);
-    animation: pulse 2s infinite;
-  }
-
-  @keyframes pulse {
-    0%, 100% { opacity: 1; transform: scale(1); }
-    50% { opacity: 0.5; transform: scale(0.8); }
-  }
 
   /* Cards */
   .glimmer-card {
@@ -329,9 +304,9 @@
   .card-date { font-size: 11px; color: var(--ink-light); font-weight: 300; }
 
   .card-text {
-    font-family: 'Lora', serif;
-    font-size: 16px;
-    line-height: 1.65;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 17px;
+    line-height: 1.6;
     color: var(--ink);
     margin-bottom: 14px;
   }
@@ -476,9 +451,88 @@
     transition: all 0.15s;
   }
   .btn-danger:hover { background: #d45545; }
+
+  /* ── Day groups in feed ──────────────────────────────────────────────────── */
+  .day-group { margin-bottom: 34px; }
+  .day-heading {
+    font-family: 'Instrument Serif', serif;
+    font-size: clamp(22px, 4.6vw, 30px);
+    font-weight: 400;
+    line-height: 1.1;
+    letter-spacing: 0;
+    color: var(--ink);
+    margin: 0 0 20px;
+    padding: 0 0 12px;
+    border-bottom: 1px solid var(--border);
+  }
+  .day-heading .today-tag {
+    color: var(--amber);
+    font-weight: 400;
+    font-style: italic;
+    font-size: 15px;
+    letter-spacing: 0;
+    white-space: nowrap;
+  }
+
+  /* Loading sentinel for infinite scroll */
+  .feed-sentinel {
+    height: 1px;
+    width: 100%;
+  }
+  .feed-loading {
+    text-align: center;
+    padding: 16px 0 60px;
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 13px;
+    color: #C5BFB5;
+  }
+
+  /* ── Bottom fade: content dissolves into the page as you scroll ───────────── */
+  .fade-bottom {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: 140px;
+    background: linear-gradient(to bottom, rgba(250,247,242,0) 0%, rgba(250,247,242,0.85) 60%, var(--cream) 100%);
+    pointer-events: none;
+    z-index: 300;
+  }
+  /* ── Lock / unlock states ────────────────────────────────────────────────── */
+  #feedWrap { transition: filter 0.6s ease, opacity 0.6s ease; }
+  body.locked .menu-wrap { display: none; }
+  body.locked .lock-hint { display: block; }
+  /* Locked: the feed is shown but heavily blurred underneath the compose box —
+     social proof that people are sharing, unreadable until you post. */
+  body.locked #feedWrap {
+    filter: blur(7px);
+    opacity: 0.55;
+    pointer-events: none;
+    user-select: none;
+  }
+  /* Once unlocked, the compose box is gone — the daily glimmer is already shared */
+  body.unlocked #composeBox { display: none; }
+  body.unlocked .logo { cursor: pointer; }
+
+  .lock-hint {
+    display: none;
+    text-align: center;
+    font-family: 'Lora', serif;
+    font-style: italic;
+    font-size: 14px;
+    color: var(--ink-light);
+    margin-top: 4px;
+  }
+
+  .feed-reveal { animation: revealUp 0.6s cubic-bezier(0.4,0,0.2,1) both; }
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
 </style>
 </head>
-<body>
+<body class="locked">
 
 <div class="menu-wrap">
   <button class="hamburger-btn" onclick="toggleMenu(event)">
@@ -491,7 +545,7 @@
 
 <div class="page">
   <header>
-    <div class="logo">my glim<span>✦</span>mer</div>
+    <div class="logo" onclick="goHome()">my glim<span>✦</span>mer</div>
     <div class="tagline">one small joy, shared with the world</div>
   </header>
 
@@ -514,16 +568,17 @@
     </div>
   </div>
 
-  <div class="feed-header">
-    <div class="live-dot" id="liveDot"></div>
-    <span class="feed-label" id="feedLabel">Today's glimmers</span>
-    <div class="feed-line"></div>
-  </div>
+  <div class="lock-hint">Share your glimmer to unlock today's feed ✦</div>
 
-  <div id="feed">
-    <div class="empty"><div class="icon">✦</div><p>Loading glimmers...</p></div>
+  <div id="feedWrap">
+    <div id="feed">
+      <div class="empty"><div class="icon">✦</div><p>Loading glimmers...</p></div>
+    </div>
+    <div class="feed-sentinel" id="feedSentinel"></div>
   </div>
 </div>
+
+<div class="fade-bottom"></div>
 
 <div class="toast" id="toast"></div>
 
@@ -675,6 +730,15 @@ async function submitGlimmer() {
 
   const newPost = { username: myUsername, text, hearts: 0 };
 
+  // First participation today unlocks the feed — reveal it so the card has
+  // somewhere to land, then let the real-time insert deliver the actual row.
+  if (document.body.classList.contains('locked')) {
+    setEnteredToday();
+    document.body.classList.remove('locked');
+    document.getElementById('feedWrap').classList.add('feed-reveal');
+    await loadGlimmers();
+  }
+
   flyCard(newPost, async () => {
     const { data, error } = await db
       .from('glimmers')
@@ -690,6 +754,8 @@ async function submitGlimmer() {
 
     input.value = '';
     onInput();
+    // The daily glimmer is shared — collapse the compose box and reveal the feed.
+    document.body.classList.add('unlocked');
     showToast('Your glimmer is out in the world ✦');
     // Real-time will add the card; no need to manually prepend
   });
@@ -704,8 +770,8 @@ function flyCard(post, onComplete) {
   flying.className = 'flying-card';
   flying.style.cssText = `left:${rect.left}px;top:${rect.top}px;width:${rect.width}px;`;
   flying.innerHTML = `
-    <div style="font-family:'Lora',serif;font-size:14px;color:#6B6560;font-style:italic;margin-bottom:8px;">My glimmer of the day was...</div>
-    <div style="font-family:'Lora',serif;font-size:16px;line-height:1.6;color:#1C1A17;">${escapeHtml(post.text)}</div>
+    <div style="font-family:'Times New Roman',Times,serif;font-size:15px;color:#6B6560;font-style:italic;margin-bottom:8px;">My glimmer of the day was...</div>
+    <div style="font-family:'Times New Roman',Times,serif;font-size:17px;line-height:1.6;color:#1C1A17;">${escapeHtml(post.text)}</div>
   `;
   document.body.appendChild(flying);
 
@@ -860,6 +926,33 @@ function formatDate(ts) {
   return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
 }
 
+// ─── Day grouping helpers ────────────────────────────────────────────────────
+function dayKeyLocal(ts) {
+  const d = new Date(ts);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
+
+function ordinal(n) {
+  const s = ['th', 'st', 'nd', 'rd'], v = n % 100;
+  return n + (s[(v - 20) % 10] || s[v] || s[0]);
+}
+
+// "Saturday, June 20th"
+function formatDayLabel(ts) {
+  const d = new Date(ts);
+  const weekday = d.toLocaleDateString('en-US', { weekday: 'long' });
+  const month = d.toLocaleDateString('en-US', { month: 'long' });
+  return `${weekday}, ${month} ${ordinal(d.getDate())}`;
+}
+
+function todayKey() { return dayKeyLocal(Date.now()); }
+function enteredKeyName() { return 'glimmer_entered_' + todayKey(); }
+function hasEnteredToday() { return localStorage.getItem(enteredKeyName()) === '1'; }
+function setEnteredToday() { localStorage.setItem(enteredKeyName(), '1'); }
+
 function buildCard(post, animate) {
   const hearted = getHeartedIds().has(post.id);
   const card = document.createElement('div');
@@ -891,31 +984,140 @@ function buildCard(post, animate) {
   return card;
 }
 
-// ─── Initial load ─────────────────────────────────────────────────────────────
-async function loadGlimmers() {
-  const since = new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString();
+// ─── Grouped rendering ────────────────────────────────────────────────────────
+// A day section is created lazily the first time a glimmer for that day appears.
+function makeDaySection(key, ts) {
+  const isToday = key === todayKey();
+  const section = document.createElement('section');
+  section.className = 'day-group';
+  section.id = 'day-' + key;
+  section.dataset.key = key;
+  section.dataset.ts = ts;
+
+  const heading = document.createElement('h2');
+  heading.className = 'day-heading';
+  heading.innerHTML = escapeHtml(formatDayLabel(ts)) +
+    (isToday ? ' <span class="today-tag">· Today</span>' : '');
+  section.appendChild(heading);
+
+  const cards = document.createElement('div');
+  cards.className = 'day-cards';
+  section.appendChild(cards);
+  return section;
+}
+
+// Append a glimmer to the bottom of the feed (older posts / pagination).
+function appendPost(post, animate) {
+  const feed = document.getElementById('feed');
+  const key = dayKeyLocal(post.created_at);
+  let section = document.getElementById('day-' + key);
+  if (!section) {
+    section = makeDaySection(key, post.created_at);
+    feed.appendChild(section);
+  }
+  const card = buildCard(post, animate);
+  section.querySelector('.day-cards').appendChild(card);
+  return card;
+}
+
+// ─── Feed loading + infinite scroll ───────────────────────────────────────────
+const PAGE_SIZE = 30;
+let feedOffset = 0;
+let feedExhausted = false;
+let feedLoading = false;
+let feedObserver = null;
+
+async function fetchPage(from) {
   const { data, error } = await db
     .from('glimmers')
     .select('*')
     .eq('reported', false)
-    .gte('created_at', since)
     .order('created_at', { ascending: false })
-    .limit(50);
+    .range(from, from + PAGE_SIZE - 1);
+  if (error) { console.error('Feed load error:', error); return null; }
+  return data || [];
+}
 
+// Full (re)load of the live feed — resets pagination state.
+async function loadGlimmers() {
   const feed = document.getElementById('feed');
+  feed.innerHTML = '';
+  feedOffset = 0;
+  feedExhausted = false;
+  feedLoading = true;
 
-  if (error || !data || data.length === 0) {
-    feed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>No glimmers yet. Share the first one.</p></div>`;
+  const posts = await fetchPage(0);
+  feedLoading = false;
+
+  if (posts === null) {
+    feed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>Couldn't load glimmers. Try refreshing.</p></div>`;
+    return;
+  }
+  if (posts.length === 0) {
+    feed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>No glimmers yet.</p></div>`;
+    feedExhausted = true;
     return;
   }
 
-  feed.innerHTML = '';
-  data.forEach((post, i) => {
-    const card = buildCard(post, false);
-    card.style.animationDelay = `${i * 50}ms`;
-    card.style.animation = `cardEnter 0.5s cubic-bezier(0.34,1.56,0.64,1) ${i * 50}ms both`;
-    feed.appendChild(card);
-  });
+  posts.forEach(p => appendPost(p, false));
+  feedOffset = posts.length;
+  if (posts.length < PAGE_SIZE) feedExhausted = true;
+  observeSentinel();
+}
+
+// Load the next page of older glimmers, appending to the bottom.
+async function loadMore() {
+  if (feedExhausted || feedLoading || showingMyGlimmers) return;
+  if (document.body.classList.contains('locked')) return; // blurred underlay stays a teaser
+  feedLoading = true;
+  const posts = await fetchPage(feedOffset);
+  feedLoading = false;
+  if (!posts || posts.length === 0) { feedExhausted = true; return; }
+  posts.forEach(p => appendPost(p, false));
+  feedOffset += posts.length;
+  if (posts.length < PAGE_SIZE) feedExhausted = true;
+}
+
+// Trigger loadMore when the sentinel near the bottom scrolls into view.
+function observeSentinel() {
+  const sentinel = document.getElementById('feedSentinel');
+  if (!sentinel) return;
+  if (feedObserver) feedObserver.disconnect();
+  feedObserver = new IntersectionObserver((entries) => {
+    if (entries.some(e => e.isIntersecting)) loadMore();
+  }, { rootMargin: '400px' });
+  feedObserver.observe(sentinel);
+}
+
+// Insert a single brand-new glimmer at the very top (real-time / own submit).
+function insertIntoFeed(post) {
+  if (post.reported) return;
+  const feed = document.getElementById('feed');
+  if (feed.querySelector(`[data-id="${post.id}"]`)) return; // de-dupe
+
+  const empty = feed.querySelector('.empty');
+  if (empty) empty.remove();
+
+  const key = dayKeyLocal(post.created_at);
+  let section = document.getElementById('day-' + key);
+
+  if (!section) {
+    // New day at the top of the feed (e.g. first glimmer of today).
+    section = makeDaySection(key, post.created_at);
+    feed.insertBefore(section, feed.firstChild);
+  }
+  const cards = section.querySelector('.day-cards');
+  const card = buildCard(post, true);
+  cards.insertBefore(card, cards.firstChild);
+  sparkleCard(card);
+}
+
+function sparkleCard(card) {
+  if (!card) return;
+  setTimeout(() => {
+    const rect = card.getBoundingClientRect();
+    spawnSparkles(rect.left + rect.width / 2, rect.top + 40);
+  }, 400);
 }
 
 // ─── Real-time subscription ───────────────────────────────────────────────────
@@ -926,18 +1128,9 @@ function subscribeToGlimmers() {
       schema: 'public',
       table: 'glimmers'
     }, (payload) => {
-      const feed = document.getElementById('feed');
-      // Remove empty state if present
-      const empty = feed.querySelector('.empty');
-      if (empty) empty.remove();
-      // Prepend new card
-      const card = buildCard(payload.new, true);
-      feed.insertBefore(card, feed.firstChild);
-      // Sparkle the new card
-      setTimeout(() => {
-        const rect = card.getBoundingClientRect();
-        spawnSparkles(rect.left + rect.width / 2, rect.top + 40);
-      }, 500);
+      // Only stream into the live "all glimmers" view, not the "my glimmers" view.
+      if (showingMyGlimmers) return;
+      insertIntoFeed(payload.new);
     })
     .on('postgres_changes', {
       event: 'UPDATE',
@@ -964,6 +1157,19 @@ document.addEventListener('click', () => {
   document.getElementById('menuDropdown').classList.remove('open');
 });
 
+// ─── Logo → home: refresh back to the latest all-glimmers feed ───────────────
+function goHome() {
+  if (document.body.classList.contains('locked')) return; // no-op on the landing gate
+  if (showingMyGlimmers) {
+    showingMyGlimmers = false;
+    const item = document.getElementById('myGlimmersItem');
+    item.classList.remove('active');
+    item.textContent = '✦ my glimmers';
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  loadGlimmers();
+}
+
 // ─── My Glimmers ─────────────────────────────────────────────────────────────
 let showingMyGlimmers = false;
 
@@ -971,20 +1177,14 @@ async function toggleMyGlimmers() {
   document.getElementById('menuDropdown').classList.remove('open');
   showingMyGlimmers = !showingMyGlimmers;
   const item = document.getElementById('myGlimmersItem');
-  const label = document.getElementById('feedLabel');
-  const dot = document.getElementById('liveDot');
 
   if (showingMyGlimmers) {
     item.classList.add('active');
     item.textContent = '✦ all glimmers';
-    label.textContent = 'My glimmers';
-    dot.style.visibility = 'hidden';
     await loadMyGlimmers();
   } else {
     item.classList.remove('active');
     item.textContent = '✦ my glimmers';
-    label.textContent = "Today's glimmers";
-    dot.style.visibility = 'visible';
     await loadGlimmers();
   }
 }
@@ -992,6 +1192,7 @@ async function toggleMyGlimmers() {
 async function loadMyGlimmers() {
   const feed = document.getElementById('feed');
   feed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>Loading your glimmers...</p></div>`;
+  feedExhausted = true; // no pagination in this view
 
   const { data, error } = await db
     .from('glimmers')
@@ -1006,16 +1207,47 @@ async function loadMyGlimmers() {
   }
 
   feed.innerHTML = '';
-  data.forEach((post, i) => {
-    const card = buildCard(post, false);
-    card.style.animation = `cardEnter 0.5s cubic-bezier(0.34,1.56,0.64,1) ${i * 50}ms both`;
-    feed.appendChild(card);
-  });
+  data.forEach(p => appendPost(p, false));
 }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
-loadGlimmers();
-subscribeToGlimmers();
+function unlockFeed() {
+  document.body.classList.remove('locked');
+  document.body.classList.add('unlocked');
+  document.getElementById('feedWrap').classList.add('feed-reveal');
+  loadGlimmers();
+}
+
+async function boot() {
+  subscribeToGlimmers();
+
+  if (hasEnteredToday()) {
+    unlockFeed();
+    return;
+  }
+
+  // Resilience: maybe this session already shared today from another tab/visit
+  // before the local flag was set. If so, honor it and unlock.
+  const midnight = new Date();
+  midnight.setHours(0, 0, 0, 0);
+  const { data } = await db
+    .from('glimmers')
+    .select('id')
+    .eq('session_id', SESSION_ID)
+    .gte('created_at', midnight.toISOString())
+    .limit(1);
+
+  if (data && data.length) {
+    setEnteredToday();
+    unlockFeed();
+    return;
+  }
+  // Stay locked, but load the feed as a blurred underlay (social proof that
+  // people are sharing) — the CSS blurs it and blocks interaction until unlock.
+  loadGlimmers();
+}
+
+boot();
 </script>
 </body>
 </html>
