@@ -333,6 +333,87 @@
   .heart-btn .heart-icon { font-size: 14px; transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1); }
   .heart-btn:active .heart-icon { transform: scale(1.4); }
 
+  /* Comment button — same pill shape as the heart, neutral palette */
+  .comment-btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 5px 12px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink-light);
+    transition: all 0.2s;
+  }
+  .comment-btn:hover { border-color: var(--sage, #7B9E87); color: var(--sage, #7B9E87); background: rgba(123,158,135,0.05); }
+  .comment-btn.open { background: rgba(123,158,135,0.08); border-color: rgba(123,158,135,0.3); color: var(--sage, #7B9E87); }
+  .comment-icon { font-size: 13px; }
+
+  /* Comment thread — hidden until the card is expanded */
+  .comment-thread {
+    display: none;
+    margin-top: 14px;
+    padding-top: 14px;
+    border-top: 1px solid var(--border);
+  }
+  .comment-thread.open { display: block; }
+  .comment-list { display: flex; flex-direction: column; gap: 12px; margin-bottom: 12px; }
+  .comment {
+    display: flex;
+    gap: 9px;
+    align-items: flex-start;
+  }
+  .comment-avatar {
+    flex: 0 0 auto;
+    width: 26px; height: 26px;
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 13px;
+  }
+  .comment-body { flex: 1 1 auto; min-width: 0; }
+  .comment-head { display: flex; align-items: baseline; gap: 7px; margin-bottom: 2px; }
+  .comment-username { font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600; color: var(--ink); }
+  .comment-date { font-size: 11px; color: var(--ink-light); }
+  .comment-text {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 14px;
+    line-height: 1.45;
+    color: var(--ink);
+    word-wrap: break-word;
+  }
+  .comment-empty { font-size: 13px; color: var(--ink-light); font-style: italic; margin-bottom: 12px; }
+  .comment-form { display: flex; gap: 8px; align-items: flex-end; }
+  .comment-input {
+    flex: 1 1 auto;
+    resize: none;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 8px 11px;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 14px;
+    color: var(--ink);
+    background: var(--paper, #fff);
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .comment-input:focus { border-color: rgba(123,158,135,0.4); }
+  .comment-send {
+    flex: 0 0 auto;
+    background: var(--sage, #7B9E87);
+    color: #fff;
+    border: none;
+    border-radius: 100px;
+    padding: 8px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+  }
+  .comment-send:disabled { opacity: 0.4; cursor: default; }
+
   .report-btn {
     margin-left: auto;
     background: none;
@@ -852,6 +933,121 @@ async function heartGlimmer(id, btn) {
   );
 }
 
+// ─── Comments ────────────────────────────────────────────────────────────────
+// Textarea that grows with its content (single line until you need more).
+function autoGrow(el) {
+  el.style.height = 'auto';
+  el.style.height = el.scrollHeight + 'px';
+}
+
+// Expand / collapse a glimmer's comment thread. Comments load lazily on first open.
+async function toggleComments(id, btn) {
+  const card = document.querySelector(`[data-id="${id}"]`);
+  if (!card) return;
+  const thread = card.querySelector('.comment-thread');
+  const isOpen = thread.classList.toggle('open');
+  btn.classList.toggle('open', isOpen);
+  if (isOpen && !thread.dataset.loaded) {
+    await loadComments(id);
+  }
+}
+
+function buildComment(c) {
+  const el = document.createElement('div');
+  el.className = 'comment';
+  el.innerHTML = `
+    <div class="comment-avatar" style="background:${getAvatarColor(c.username)}">${getAvatarEmoji(c.username)}</div>
+    <div class="comment-body">
+      <div class="comment-head">
+        <span class="comment-username">${escapeHtml(c.username)}</span>
+        <span class="comment-date">${formatDate(c.created_at)}</span>
+      </div>
+      <div class="comment-text">${escapeHtml(c.text)}</div>
+    </div>
+  `;
+  return el;
+}
+
+async function loadComments(id) {
+  const card = document.querySelector(`[data-id="${id}"]`);
+  if (!card) return;
+  const thread = card.querySelector('.comment-thread');
+  const list = thread.querySelector('.comment-list');
+
+  const { data, error } = await db
+    .from('comments')
+    .select('*')
+    .eq('glimmer_id', id)
+    .order('created_at', { ascending: true });
+
+  if (error) {
+    list.innerHTML = `<div class="comment-empty">Couldn't load comments.</div>`;
+    return;
+  }
+
+  thread.dataset.loaded = '1';
+  list.innerHTML = '';
+  if (!data.length) {
+    list.innerHTML = `<div class="comment-empty">No comments yet — be the first.</div>`;
+  } else {
+    data.forEach(c => list.appendChild(buildComment(c)));
+  }
+  // Keep the count badge in sync with what we actually loaded.
+  const countEl = card.querySelector('.comment-count');
+  if (countEl) countEl.textContent = data.length;
+}
+
+async function submitComment(e, id) {
+  e.preventDefault();
+  const card = document.querySelector(`[data-id="${id}"]`);
+  if (!card) return;
+  const form = card.querySelector('.comment-form');
+  const input = form.querySelector('.comment-input');
+  const sendBtn = form.querySelector('.comment-send');
+  const text = input.value.trim();
+  if (!text) return;
+
+  if (!moderateText(text)) {
+    showToast('This comment doesn\'t feel right for this space 💛');
+    return;
+  }
+
+  sendBtn.disabled = true;
+  const list = card.querySelector('.comment-list');
+  const empty = list.querySelector('.comment-empty');
+  if (empty) empty.remove();
+
+  // Optimistic render
+  const optimistic = { username: myUsername, text, created_at: new Date().toISOString() };
+  const node = buildComment(optimistic);
+  node.style.opacity = '0.6';
+  list.appendChild(node);
+
+  const { error } = await db
+    .from('comments')
+    .insert([{ glimmer_id: id, session_id: SESSION_ID, username: myUsername, text }]);
+
+  if (error) {
+    node.remove();
+    if (!list.children.length) {
+      list.innerHTML = `<div class="comment-empty">No comments yet — be the first.</div>`;
+    }
+    sendBtn.disabled = false;
+    showToast('Couldn\'t post your comment. Try again.');
+    return;
+  }
+
+  node.style.opacity = '1';
+  input.value = '';
+  autoGrow(input);
+  sendBtn.disabled = false;
+
+  // Bump the denormalized count on the glimmer + the badge.
+  await db.rpc('increment_comments', { glimmer_id: id });
+  const countEl = card.querySelector('.comment-count');
+  if (countEl) countEl.textContent = parseInt(countEl.textContent || '0') + 1;
+}
+
 // ─── Sparkles ────────────────────────────────────────────────────────────────
 function spawnSparkles(x, y) {
   const colors = ['#E8A838','#E8606A','#7B9E87','#F5D78A'];
@@ -997,10 +1193,22 @@ function buildCard(post, animate) {
         <span class="heart-icon">${hearted ? '♥' : '♡'}</span>
         <span class="heart-count">${post.hearts || 0}</span>
       </button>
+      <button class="comment-btn" onclick="toggleComments('${post.id}', this)" title="Comment on this glimmer">
+        <span class="comment-icon">💬</span>
+        <span class="comment-count">${post.comments || 0}</span>
+      </button>
       ${post.session_id === SESSION_ID
         ? `<button class="delete-btn" onclick="deleteGlimmer('${post.id}', this)" title="Delete your glimmer">✕</button>`
         : `<button class="report-btn" onclick="reportGlimmer('${post.id}')" title="Report this glimmer">⚑</button>`
       }
+    </div>
+    <div class="comment-thread" data-thread="${post.id}">
+      <div class="comment-list"></div>
+      <form class="comment-form" onsubmit="submitComment(event, '${post.id}')">
+        <textarea class="comment-input" rows="1" maxlength="280"
+          placeholder="add a kind word…" oninput="autoGrow(this)"></textarea>
+        <button type="submit" class="comment-send">Send</button>
+      </form>
     </div>
   `;
   return card;
@@ -1164,6 +1372,8 @@ function subscribeToGlimmers() {
       if (card) {
         const countEl = card.querySelector('.heart-count');
         if (countEl) countEl.textContent = payload.new.hearts;
+        const commentEl = card.querySelector('.comment-count');
+        if (commentEl && payload.new.comments != null) commentEl.textContent = payload.new.comments;
       }
     })
     .subscribe();
