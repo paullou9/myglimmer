@@ -502,7 +502,6 @@
   /* ── Lock / unlock states ────────────────────────────────────────────────── */
   #feedWrap { transition: filter 0.6s ease, opacity 0.6s ease; }
   body.locked .menu-wrap { display: none; }
-  body.locked .lock-hint { display: block; }
   /* Locked: the feed is shown but heavily blurred underneath the compose box —
      social proof that people are sharing, unreadable until you post. */
   body.locked #feedWrap {
@@ -515,15 +514,37 @@
   body.unlocked #composeBox { display: none; }
   body.unlocked .logo { cursor: pointer; }
 
-  .lock-hint {
-    display: none;
+  /* ── Typing intro prompt (landing only) ──────────────────────────────────── */
+  .typing-prompt {
+    font-family: 'Instrument Serif', serif;
+    font-size: 30px;
+    line-height: 1.3;
     text-align: center;
-    font-family: 'Lora', serif;
-    font-style: italic;
-    font-size: 14px;
-    color: var(--ink-light);
-    margin-top: 4px;
+    white-space: pre-line;
+    color: var(--ink);
+    min-height: 4.6em;
+    margin-bottom: 24px;
   }
+  body.unlocked .typing-prompt { display: none; }
+
+  .type-caret {
+    display: inline-block;
+    width: 2px;
+    height: 0.9em;
+    background: var(--ink);
+    margin-left: 3px;
+    vertical-align: -2px;
+    animation: caretBlink 1s step-end infinite;
+  }
+  @keyframes caretBlink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+
+  /* The compose box waits, hidden, until the intro finishes typing */
+  body.locked #composeBox {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  body.locked #composeBox.intro-revealed { opacity: 1; transform: translateY(0); }
 
   .feed-reveal { animation: revealUp 0.6s cubic-bezier(0.4,0,0.2,1) both; }
   @keyframes revealUp {
@@ -549,6 +570,8 @@
     <div class="tagline">one small joy, shared with the world</div>
   </header>
 
+  <div class="typing-prompt" id="typingPrompt"><span><span id="typedText"></span><span class="type-caret" id="typeCaret"></span></span></div>
+
   <div class="compose" id="composeBox">
     <div class="username-row">
       <div class="avatar" id="myAvatar"></div>
@@ -563,12 +586,11 @@
     <div class="compose-footer">
       <span class="char-count" id="charCount">180 left</span>
       <button class="submit-btn" id="submitBtn" onclick="submitGlimmer()" disabled>
-        <span>✦</span> Share glimmer
+        <span>✦</span> Share glimmer with the world
       </button>
     </div>
   </div>
 
-  <div class="lock-hint">Share your glimmer to unlock today's feed ✦</div>
 
   <div id="feedWrap">
     <div id="feed">
@@ -1210,6 +1232,32 @@ async function loadMyGlimmers() {
   data.forEach(p => appendPost(p, false));
 }
 
+// ─── Typing intro (landing only) ──────────────────────────────────────────────
+// Types "It's <date>.\nWhat's a moment of peace, joy, or gratitude that you
+// experienced today?" then, after a pause, fades the compose box in.
+function startTypingIntro() {
+  const full = "It's " + formatDayLabel(Date.now()) +
+    ".\n\nWhat's a moment of peace, joy, or gratitude that you experienced today?";
+  const el = document.getElementById('typedText');
+  const caret = document.getElementById('typeCaret');
+  const compose = document.getElementById('composeBox');
+  let i = 0;
+
+  function tick() {
+    if (i <= full.length) {
+      el.textContent = full.slice(0, i);
+      const ch = full.charAt(i - 1);
+      i++;
+      const delay = i < 5 ? 90 : (ch === '.' ? 360 : (ch === '\n' ? 240 : 34));
+      setTimeout(tick, delay);
+    } else {
+      caret.style.display = 'none';
+      setTimeout(() => compose.classList.add('intro-revealed'), 1400);
+    }
+  }
+  setTimeout(tick, 400);
+}
+
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 function unlockFeed() {
   document.body.classList.remove('locked');
@@ -1246,6 +1294,10 @@ async function boot() {
   // people are sharing) — the CSS blurs it and blocks interaction until unlock.
   loadGlimmers();
 }
+
+// Run the typing intro immediately for a locked landing (don't wait on the
+// async DB check). If that check later unlocks, the CSS hides the prompt.
+if (!hasEnteredToday()) startTypingIntro();
 
 boot();
 </script>
