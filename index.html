@@ -109,13 +109,6 @@
   .tab:hover { color: var(--ink); }
   .tab.active { color: var(--ink); border-bottom-color: var(--amber); }
 
-  .tab .lock-icon {
-    font-size: 13px;
-    transition: opacity 0.4s ease;
-  }
-  /* Once today's glimmer is shared, the All Glimmers tab is no longer locked */
-  body.unlocked .tab .lock-icon { display: none; }
-
   /* ── Tab panels ───────────────────────────────────────────────────────────── */
   .tab-panel { display: none; }
   .tab-panel.active { display: block; animation: panelIn 0.35s ease both; }
@@ -124,29 +117,15 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── Typing intro prompt (All Glimmers landing, while locked) ─────────────── */
-  .typing-prompt {
-    font-family: 'Instrument Serif', serif;
-    font-size: 27px;
-    line-height: 1.3;
+  /* ── Compose hint (below the compose box, while locked) ──────────────────── */
+  .compose-hint {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 400;
     text-align: center;
-    white-space: pre-line;
-    color: var(--ink);
-    min-height: 3em;
-    margin: 8px 0 18px;
+    color: var(--ink-light);
+    margin-top: 16px;
   }
-  body.unlocked .typing-prompt { display: none; }
-
-  .type-caret {
-    display: inline-block;
-    width: 2px;
-    height: 0.9em;
-    background: var(--ink);
-    margin-left: 3px;
-    vertical-align: -2px;
-    animation: caretBlink 1s step-end infinite;
-  }
-  @keyframes caretBlink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
 
   /* ── Locked-feed teaser + unlock CTA ──────────────────────────────────────── */
   #allFeedWrap { transition: filter 0.6s ease, opacity 0.6s ease; }
@@ -178,13 +157,6 @@
     margin-bottom: 40px;
     box-shadow: var(--shadow);
   }
-  /* Hidden until the typing intro finishes, then fades in */
-  body.locked #composeBox {
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-  body.locked #composeBox.intro-revealed { opacity: 1; transform: translateY(0); }
   /* Once today's glimmer is shared, the compose box is gone */
   body.unlocked #composeBox { display: none; }
 
@@ -634,7 +606,7 @@
   <!-- ── Tabs ────────────────────────────────────────────────────────────── -->
   <nav class="tabs">
     <button class="tab active" id="tabAll" onclick="switchTab('all')">
-      All Glimmers <span class="lock-icon" id="allLockIcon">🔒</span>
+      All Glimmers
     </button>
     <button class="tab" id="tabMine" onclick="switchTab('mine')">
       My Glimmers
@@ -643,8 +615,6 @@
 
   <!-- ── All Glimmers panel ──────────────────────────────────────────────── -->
   <div class="tab-panel active" id="panelAll">
-    <div class="typing-prompt" id="typingPrompt"><span><span id="typedText"></span><span class="type-caret" id="typeCaret"></span></span></div>
-
     <div class="compose" id="composeBox">
       <div class="username-row">
         <div class="avatar" id="myAvatar"></div>
@@ -662,6 +632,7 @@
           <span>✦</span> Share my glimmer
         </button>
       </div>
+      <div class="compose-hint">Add a glimmer to see today's glimmers :)</div>
     </div>
 
     <div id="allFeedWrap">
@@ -824,7 +795,6 @@ function goCompose() {
   }
   switchTab('all');
   const box = document.getElementById('composeBox');
-  box.classList.add('intro-revealed');
   setTimeout(() => {
     box.scrollIntoView({ behavior: 'smooth', block: 'center' });
     document.getElementById('glimmerInput').focus();
@@ -1464,32 +1434,6 @@ function goHome() {
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// ─── Typing intro (All Glimmers landing, while locked) ────────────────────────
-// Types "It's <date>. What's a moment of peace, joy, or gratitude that you
-// experienced today?" then, after a pause, fades the inline compose box in.
-function startTypingIntro() {
-  const full = "It's " + formatDayLabel(Date.now()) +
-    ".\nWhat's a moment of peace, joy, or gratitude that you experienced today?";
-  const el = document.getElementById('typedText');
-  const caret = document.getElementById('typeCaret');
-  const compose = document.getElementById('composeBox');
-  let i = 0;
-
-  function tick() {
-    if (i <= full.length) {
-      el.textContent = full.slice(0, i);
-      const ch = full.charAt(i - 1);
-      i++;
-      const delay = i < 5 ? 90 : (ch === '.' ? 360 : (ch === '\n' ? 240 : 34));
-      setTimeout(tick, delay);
-    } else {
-      caret.style.display = 'none';
-      setTimeout(() => compose.classList.add('intro-revealed'), 1100);
-    }
-  }
-  setTimeout(tick, 400);
-}
-
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 function unlockState() {
   document.body.classList.remove('locked');
@@ -1527,10 +1471,6 @@ async function boot() {
   // people are sharing) — the CSS blurs it and blocks interaction until unlock.
   await loadAllGlimmers();
 }
-
-// Run the typing intro immediately for a locked landing (don't wait on the
-// async DB check). If that check later unlocks, the CSS hides the prompt.
-if (!hasEnteredToday()) startTypingIntro();
 
 boot();
 </script>
