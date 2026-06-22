@@ -51,14 +51,8 @@
   }
 
   header {
-    position: sticky;
-    top: 0;
-    z-index: 400;
     text-align: center;
-    background: var(--cream);
-    padding: 22px 0 16px;
-    margin-bottom: 24px;
-    border-bottom: 1px solid var(--border);
+    padding: 22px 0 14px;
   }
 
   .logo {
@@ -69,6 +63,7 @@
     color: var(--ink);
     line-height: 1;
     margin-bottom: 6px;
+    cursor: pointer;
   }
 
   .logo span { color: var(--amber); }
@@ -80,7 +75,97 @@
     letter-spacing: 0.02em;
   }
 
-  /* Compose */
+  /* ── Tab bar ──────────────────────────────────────────────────────────────── */
+  .tabs {
+    position: sticky;
+    top: 0;
+    z-index: 400;
+    display: flex;
+    gap: 4px;
+    background: var(--cream);
+    padding: 14px 0 0;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .tab {
+    flex: 1;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    padding: 12px 8px 14px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--ink-light);
+    cursor: pointer;
+    transition: color 0.2s, border-color 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    margin-bottom: -1px;
+  }
+  .tab:hover { color: var(--ink); }
+  .tab.active { color: var(--ink); border-bottom-color: var(--amber); }
+
+  .tab .lock-icon {
+    font-size: 13px;
+    transition: opacity 0.4s ease;
+  }
+  /* Once today's glimmer is shared, the All Glimmers tab is no longer locked */
+  body.unlocked .tab .lock-icon { display: none; }
+
+  /* ── Tab panels ───────────────────────────────────────────────────────────── */
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; animation: panelIn 0.35s ease both; }
+  @keyframes panelIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Typing intro prompt (All Glimmers landing, while locked) ─────────────── */
+  .typing-prompt {
+    font-family: 'Instrument Serif', serif;
+    font-size: 30px;
+    line-height: 1.3;
+    text-align: center;
+    white-space: pre-line;
+    color: var(--ink);
+    min-height: 4.6em;
+    margin: 8px 0 28px;
+  }
+  body.unlocked .typing-prompt { display: none; }
+
+  .type-caret {
+    display: inline-block;
+    width: 2px;
+    height: 0.9em;
+    background: var(--ink);
+    margin-left: 3px;
+    vertical-align: -2px;
+    animation: caretBlink 1s step-end infinite;
+  }
+  @keyframes caretBlink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
+
+  /* ── Locked-feed teaser + unlock CTA ──────────────────────────────────────── */
+  #allFeedWrap { transition: filter 0.6s ease, opacity 0.6s ease; }
+  /* Locked: the live feed is shown but heavily blurred — social proof that
+     people are sharing, unreadable until you post today's glimmer. */
+  body.locked #allFeedWrap {
+    filter: blur(7px);
+    opacity: 0.5;
+    pointer-events: none;
+    user-select: none;
+  }
+
+  .feed-reveal { animation: revealUp 0.6s cubic-bezier(0.4,0,0.2,1) both; }
+  @keyframes revealUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Compose (inline, on the locked All Glimmers tab) ─────────────────────── */
   .compose {
     background: var(--warm-white);
     border: 1px solid var(--border);
@@ -89,6 +174,15 @@
     margin-bottom: 40px;
     box-shadow: var(--shadow);
   }
+  /* Hidden until the typing intro finishes, then fades in */
+  body.locked #composeBox {
+    opacity: 0;
+    transform: translateY(10px);
+    transition: opacity 0.6s ease, transform 0.6s ease;
+  }
+  body.locked #composeBox.intro-revealed { opacity: 1; transform: translateY(0); }
+  /* Once today's glimmer is shared, the compose box is gone */
+  body.unlocked #composeBox { display: none; }
 
   .username-row {
     display: flex;
@@ -190,7 +284,7 @@
   /* Flying card */
   .flying-card {
     position: fixed;
-    z-index: 1000;
+    z-index: 5000;
     background: var(--warm-white);
     border: 1px solid var(--border);
     border-radius: 12px;
@@ -198,68 +292,6 @@
     box-shadow: var(--shadow-lift);
     pointer-events: none;
   }
-
-  .menu-wrap {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 500;
-  }
-
-  .hamburger-btn {
-    background: var(--warm-white);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 9px 12px;
-    cursor: pointer;
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    transition: background 0.15s;
-  }
-  .hamburger-btn:hover { background: var(--cream); }
-  .hamburger-btn span {
-    display: block;
-    width: 26px;
-    height: 3px;
-    background: var(--ink-light);
-    border-radius: 2px;
-    transition: background 0.15s;
-  }
-  .hamburger-btn:hover span { background: var(--ink); }
-
-  .menu-dropdown {
-    position: absolute;
-    right: 0;
-    top: calc(100% + 8px);
-    background: var(--warm-white);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    box-shadow: var(--shadow-lift);
-    min-width: 160px;
-    overflow: hidden;
-    display: none;
-    z-index: 100;
-  }
-  .menu-dropdown.open { display: block; }
-
-  .menu-item {
-    display: flex;
-    align-items: center;
-    gap: 9px;
-    padding: 11px 16px;
-    font-size: 13px;
-    font-family: 'DM Sans', sans-serif;
-    color: var(--ink);
-    cursor: pointer;
-    transition: background 0.12s;
-    border: none;
-    background: none;
-    width: 100%;
-    text-align: left;
-  }
-  .menu-item:hover { background: var(--cream); }
-  .menu-item.active { color: var(--amber); font-weight: 500; }
 
   /* Cards */
   .glimmer-card {
@@ -462,6 +494,13 @@
   }
   .empty .icon { font-size: 36px; margin-bottom: 12px; }
   .empty p { font-family: 'Lora', serif; font-style: italic; font-size: 15px; }
+  .empty .empty-cta {
+    color: var(--amber);
+    font-style: normal;
+    cursor: pointer;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
 
   /* Toast */
   .toast {
@@ -475,7 +514,7 @@
     border-radius: 100px;
     font-size: 13px;
     transition: transform 0.3s cubic-bezier(0.34,1.56,0.64,1);
-    z-index: 3000;
+    z-index: 6000;
     white-space: nowrap;
   }
   .toast.show { transform: translateX(-50%) translateY(0); }
@@ -556,18 +595,7 @@
   }
 
   /* Loading sentinel for infinite scroll */
-  .feed-sentinel {
-    height: 1px;
-    width: 100%;
-  }
-  .feed-loading {
-    text-align: center;
-    padding: 16px 0 60px;
-    font-family: 'Lora', serif;
-    font-style: italic;
-    font-size: 13px;
-    color: #C5BFB5;
-  }
+  .feed-sentinel { height: 1px; width: 100%; }
 
   /* ── Bottom fade: content dissolves into the page as you scroll ───────────── */
   .fade-bottom {
@@ -580,70 +608,9 @@
     pointer-events: none;
     z-index: 300;
   }
-  /* ── Lock / unlock states ────────────────────────────────────────────────── */
-  #feedWrap { transition: filter 0.6s ease, opacity 0.6s ease; }
-  body.locked .menu-wrap { display: none; }
-  /* Locked: the feed is shown but heavily blurred underneath the compose box —
-     social proof that people are sharing, unreadable until you post. */
-  body.locked #feedWrap {
-    filter: blur(7px);
-    opacity: 0.55;
-    pointer-events: none;
-    user-select: none;
-  }
-  /* Once unlocked, the compose box is gone — the daily glimmer is already shared */
-  body.unlocked #composeBox { display: none; }
-  body.unlocked .logo { cursor: pointer; }
-
-  /* ── Typing intro prompt (landing only) ──────────────────────────────────── */
-  .typing-prompt {
-    font-family: 'Instrument Serif', serif;
-    font-size: 30px;
-    line-height: 1.3;
-    text-align: center;
-    white-space: pre-line;
-    color: var(--ink);
-    min-height: 4.6em;
-    margin-bottom: 24px;
-  }
-  body.unlocked .typing-prompt { display: none; }
-
-  .type-caret {
-    display: inline-block;
-    width: 2px;
-    height: 0.9em;
-    background: var(--ink);
-    margin-left: 3px;
-    vertical-align: -2px;
-    animation: caretBlink 1s step-end infinite;
-  }
-  @keyframes caretBlink { 0%,49% { opacity: 1; } 50%,100% { opacity: 0; } }
-
-  /* The compose box waits, hidden, until the intro finishes typing */
-  body.locked #composeBox {
-    opacity: 0;
-    transform: translateY(10px);
-    transition: opacity 0.6s ease, transform 0.6s ease;
-  }
-  body.locked #composeBox.intro-revealed { opacity: 1; transform: translateY(0); }
-
-  .feed-reveal { animation: revealUp 0.6s cubic-bezier(0.4,0,0.2,1) both; }
-  @keyframes revealUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
 </style>
 </head>
 <body class="locked">
-
-<div class="menu-wrap">
-  <button class="hamburger-btn" onclick="toggleMenu(event)">
-    <span></span><span></span><span></span>
-  </button>
-  <div class="menu-dropdown" id="menuDropdown">
-    <button class="menu-item" id="myGlimmersItem" onclick="toggleMyGlimmers()">✦ my glimmers</button>
-  </div>
-</div>
 
 <div class="page">
   <header>
@@ -651,33 +618,52 @@
     <div class="tagline">one small joy, shared with the world</div>
   </header>
 
-  <div class="typing-prompt" id="typingPrompt"><span><span id="typedText"></span><span class="type-caret" id="typeCaret"></span></span></div>
+  <!-- ── Tabs ────────────────────────────────────────────────────────────── -->
+  <nav class="tabs">
+    <button class="tab active" id="tabAll" onclick="switchTab('all')">
+      All Glimmers <span class="lock-icon" id="allLockIcon">🔒</span>
+    </button>
+    <button class="tab" id="tabMine" onclick="switchTab('mine')">
+      My Glimmers
+    </button>
+  </nav>
 
-  <div class="compose" id="composeBox">
-    <div class="username-row">
-      <div class="avatar" id="myAvatar"></div>
-      <div>
-        <div class="username-display" id="myUsernameDisplay"></div>
-        <div style="font-size:11px;color:var(--ink-light);font-weight:300;margin-top:1px;">your anonymous name for this session</div>
+  <!-- ── All Glimmers panel ──────────────────────────────────────────────── -->
+  <div class="tab-panel active" id="panelAll">
+    <div class="typing-prompt" id="typingPrompt"><span><span id="typedText"></span><span class="type-caret" id="typeCaret"></span></span></div>
+
+    <div class="compose" id="composeBox">
+      <div class="username-row">
+        <div class="avatar" id="myAvatar"></div>
+        <div>
+          <div class="username-display" id="myUsernameDisplay"></div>
+          <div style="font-size:11px;color:var(--ink-light);font-weight:300;margin-top:1px;">your anonymous name for this session</div>
+        </div>
+        <button class="regenerate-btn" onclick="regenerateUsername()">↻ new name</button>
       </div>
-      <button class="regenerate-btn" onclick="regenerateUsername()">↻ new name</button>
+      <span class="prompt-label">My glimmer of the day was...</span>
+      <textarea id="glimmerInput" placeholder="a stranger held the door open and smiled at me" maxlength="180" oninput="onInput()" rows="3"></textarea>
+      <div class="compose-footer">
+        <span class="char-count" id="charCount">180 left</span>
+        <button class="submit-btn" id="submitBtn" onclick="submitGlimmer()" disabled>
+          <span>✦</span> Share my glimmer
+        </button>
+      </div>
     </div>
-    <span class="prompt-label">My glimmer of the day was...</span>
-    <textarea id="glimmerInput" placeholder="a stranger held the door open and smiled at me" maxlength="180" oninput="onInput()" rows="3"></textarea>
-    <div class="compose-footer">
-      <span class="char-count" id="charCount">180 left</span>
-      <button class="submit-btn" id="submitBtn" onclick="submitGlimmer()" disabled>
-        <span>✦</span> Share glimmer with the world
-      </button>
+
+    <div id="allFeedWrap">
+      <div id="allFeed">
+        <div class="empty"><div class="icon">✦</div><p>Loading glimmers...</p></div>
+      </div>
+      <div class="feed-sentinel" id="feedSentinel"></div>
     </div>
   </div>
 
-
-  <div id="feedWrap">
-    <div id="feed">
-      <div class="empty"><div class="icon">✦</div><p>Loading glimmers...</p></div>
+  <!-- ── My Glimmers panel ───────────────────────────────────────────────── -->
+  <div class="tab-panel" id="panelMine">
+    <div id="myFeed">
+      <div class="empty"><div class="icon">✦</div><p>Loading your glimmers...</p></div>
     </div>
-    <div class="feed-sentinel" id="feedSentinel"></div>
   </div>
 </div>
 
@@ -817,6 +803,21 @@ function moderateText(text) {
   return blocklist.some(w => lower.includes(w));
 }
 
+// ─── Jump to the inline compose box (from "Post one 😉" on My Glimmers) ───────
+function goCompose() {
+  if (document.body.classList.contains('unlocked')) {
+    showToast('You\'ve already shared your glimmer today ✦');
+    return;
+  }
+  switchTab('all');
+  const box = document.getElementById('composeBox');
+  box.classList.add('intro-revealed');
+  setTimeout(() => {
+    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    document.getElementById('glimmerInput').focus();
+  }, 120);
+}
+
 // ─── Submit ──────────────────────────────────────────────────────────────────
 async function submitGlimmer() {
   const input = document.getElementById('glimmerInput');
@@ -832,14 +833,17 @@ async function submitGlimmer() {
   btn.disabled = true;
 
   const newPost = { username: myUsername, text, hearts: 0 };
+  const wasLocked = document.body.classList.contains('locked');
 
-  // First participation today unlocks the feed — reveal it so the card has
-  // somewhere to land, then let the real-time insert deliver the actual row.
-  if (document.body.classList.contains('locked')) {
+  // First participation today unlocks the All Glimmers feed. Reveal it now so
+  // the flying card has somewhere to land — but keep the compose box visible
+  // (we only add `unlocked`, which hides it, once the card has landed).
+  if (wasLocked) {
     setEnteredToday();
     document.body.classList.remove('locked');
-    document.getElementById('feedWrap').classList.add('feed-reveal');
-    await loadGlimmers();
+    document.getElementById('allFeedWrap').classList.add('feed-reveal');
+    switchTab('all', { silent: true });
+    await loadAllGlimmers();
   }
 
   flyCard(newPost, async () => {
@@ -857,10 +861,11 @@ async function submitGlimmer() {
 
     input.value = '';
     onInput();
-    // The daily glimmer is shared — collapse the compose box and reveal the feed.
+    // The daily glimmer is shared — collapse the compose box, drop the lock.
     document.body.classList.add('unlocked');
     showToast('Your glimmer is out in the world ✦');
-    // Real-time will add the card; no need to manually prepend
+    // Real-time will add the card to the All feed; mirror it into My Glimmers too.
+    insertIntoFeed(data, document.getElementById('myFeed'));
   });
 }
 
@@ -878,7 +883,7 @@ function flyCard(post, onComplete) {
   `;
   document.body.appendChild(flying);
 
-  const feedEl = document.getElementById('feed');
+  const feedEl = document.getElementById('allFeed');
   const feedRect = feedEl.getBoundingClientRect();
   const dy = feedRect.top - rect.top;
 
@@ -941,14 +946,16 @@ function autoGrow(el) {
 }
 
 // Expand / collapse a glimmer's comment thread. Comments load lazily on first open.
+// Scoped to the specific card the button lives in (a glimmer can appear in both
+// the All and My feeds, so we never look it up globally by id).
 async function toggleComments(id, btn) {
-  const card = document.querySelector(`[data-id="${id}"]`);
+  const card = btn.closest('.glimmer-card');
   if (!card) return;
   const thread = card.querySelector('.comment-thread');
   const isOpen = thread.classList.toggle('open');
   btn.classList.toggle('open', isOpen);
   if (isOpen && !thread.dataset.loaded) {
-    await loadComments(id);
+    await loadComments(id, card);
   }
 }
 
@@ -968,9 +975,7 @@ function buildComment(c) {
   return el;
 }
 
-async function loadComments(id) {
-  const card = document.querySelector(`[data-id="${id}"]`);
-  if (!card) return;
+async function loadComments(id, card) {
   const thread = card.querySelector('.comment-thread');
   const list = thread.querySelector('.comment-list');
 
@@ -999,7 +1004,7 @@ async function loadComments(id) {
 
 async function submitComment(e, id) {
   e.preventDefault();
-  const card = document.querySelector(`[data-id="${id}"]`);
+  const card = e.target.closest('.glimmer-card');
   if (!card) return;
   const form = card.querySelector('.comment-form');
   const input = form.querySelector('.comment-input');
@@ -1102,20 +1107,29 @@ async function deleteGlimmer(id, btn) {
     console.error('Delete error:', error);
     return;
   }
-  const card = document.querySelector(`[data-id="${id}"]`);
-  if (card) {
+  // Remove the card from every feed it appears in (All + My Glimmers).
+  document.querySelectorAll(`[data-id="${id}"]`).forEach(card => {
     card.style.transition = 'opacity 0.3s, transform 0.3s';
     card.style.opacity = '0';
     card.style.transform = 'scale(0.97)';
     setTimeout(() => {
       card.remove();
-      const feed = document.getElementById('feed');
-      if (!feed.querySelector('.glimmer-card')) {
-        feed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>No glimmers yet. Share the first one.</p></div>`;
-      }
+      refreshEmptyStates();
     }, 300);
-  }
+  });
   showToast('Glimmer deleted.');
+}
+
+// If a feed has no cards left after a delete, restore its empty state.
+function refreshEmptyStates() {
+  const allFeed = document.getElementById('allFeed');
+  if (!allFeed.querySelector('.glimmer-card') && !allFeed.querySelector('.empty')) {
+    allFeed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>No glimmers yet. Share the first one.</p></div>`;
+  }
+  const myFeed = document.getElementById('myFeed');
+  if (!myFeed.querySelector('.glimmer-card') && !myFeed.querySelector('.empty')) {
+    myFeed.innerHTML = myEmptyState();
+  }
 }
 
 // ─── Toast ───────────────────────────────────────────────────────────────────
@@ -1214,13 +1228,13 @@ function buildCard(post, animate) {
   return card;
 }
 
-// ─── Grouped rendering ────────────────────────────────────────────────────────
-// A day section is created lazily the first time a glimmer for that day appears.
+// ─── Grouped rendering (feed-scoped) ──────────────────────────────────────────
+// Day sections are scoped to their feed container via [data-key]; the same
+// helper drives both the All Glimmers and My Glimmers feeds.
 function makeDaySection(key, ts) {
   const isToday = key === todayKey();
   const section = document.createElement('section');
   section.className = 'day-group';
-  section.id = 'day-' + key;
   section.dataset.key = key;
   section.dataset.ts = ts;
 
@@ -1236,21 +1250,50 @@ function makeDaySection(key, ts) {
   return section;
 }
 
-// Append a glimmer to the bottom of the feed (older posts / pagination).
-function appendPost(post, animate) {
-  const feed = document.getElementById('feed');
+// Append a glimmer to the bottom of a feed (older posts / pagination).
+function appendPost(post, animate, feedEl) {
   const key = dayKeyLocal(post.created_at);
-  let section = document.getElementById('day-' + key);
+  let section = feedEl.querySelector(`.day-group[data-key="${key}"]`);
   if (!section) {
     section = makeDaySection(key, post.created_at);
-    feed.appendChild(section);
+    feedEl.appendChild(section);
   }
   const card = buildCard(post, animate);
   section.querySelector('.day-cards').appendChild(card);
   return card;
 }
 
-// ─── Feed loading + infinite scroll ───────────────────────────────────────────
+// Insert a single glimmer at the very top of a feed (real-time / own submit).
+function insertIntoFeed(post, feedEl) {
+  if (post.reported) return;
+  if (feedEl.querySelector(`[data-id="${post.id}"]`)) return; // de-dupe
+
+  const empty = feedEl.querySelector('.empty');
+  if (empty) empty.remove();
+
+  const key = dayKeyLocal(post.created_at);
+  let section = feedEl.querySelector(`.day-group[data-key="${key}"]`);
+
+  if (!section) {
+    // New day at the top of the feed (e.g. first glimmer of today).
+    section = makeDaySection(key, post.created_at);
+    feedEl.insertBefore(section, feedEl.firstChild);
+  }
+  const cards = section.querySelector('.day-cards');
+  const card = buildCard(post, true);
+  cards.insertBefore(card, cards.firstChild);
+  sparkleCard(card);
+}
+
+function sparkleCard(card) {
+  if (!card) return;
+  setTimeout(() => {
+    const rect = card.getBoundingClientRect();
+    spawnSparkles(rect.left + rect.width / 2, rect.top + 40);
+  }, 400);
+}
+
+// ─── All Glimmers feed: loading + infinite scroll ─────────────────────────────
 const PAGE_SIZE = 30;
 let feedOffset = 0;
 let feedExhausted = false;
@@ -1268,9 +1311,9 @@ async function fetchPage(from) {
   return data || [];
 }
 
-// Full (re)load of the live feed — resets pagination state.
-async function loadGlimmers() {
-  const feed = document.getElementById('feed');
+// Full (re)load of the live All Glimmers feed — resets pagination state.
+async function loadAllGlimmers() {
+  const feed = document.getElementById('allFeed');
   feed.innerHTML = '';
   feedOffset = 0;
   feedExhausted = false;
@@ -1289,21 +1332,23 @@ async function loadGlimmers() {
     return;
   }
 
-  posts.forEach(p => appendPost(p, false));
+  posts.forEach(p => appendPost(p, false, feed));
   feedOffset = posts.length;
   if (posts.length < PAGE_SIZE) feedExhausted = true;
   observeSentinel();
 }
 
-// Load the next page of older glimmers, appending to the bottom.
+// Load the next page of older glimmers, appending to the bottom of the All feed.
 async function loadMore() {
-  if (feedExhausted || feedLoading || showingMyGlimmers) return;
+  if (feedExhausted || feedLoading) return;
+  if (activeTab !== 'all') return;
   if (document.body.classList.contains('locked')) return; // blurred underlay stays a teaser
   feedLoading = true;
   const posts = await fetchPage(feedOffset);
   feedLoading = false;
   if (!posts || posts.length === 0) { feedExhausted = true; return; }
-  posts.forEach(p => appendPost(p, false));
+  const feed = document.getElementById('allFeed');
+  posts.forEach(p => appendPost(p, false, feed));
   feedOffset += posts.length;
   if (posts.length < PAGE_SIZE) feedExhausted = true;
 }
@@ -1319,35 +1364,33 @@ function observeSentinel() {
   feedObserver.observe(sentinel);
 }
 
-// Insert a single brand-new glimmer at the very top (real-time / own submit).
-function insertIntoFeed(post) {
-  if (post.reported) return;
-  const feed = document.getElementById('feed');
-  if (feed.querySelector(`[data-id="${post.id}"]`)) return; // de-dupe
-
-  const empty = feed.querySelector('.empty');
-  if (empty) empty.remove();
-
-  const key = dayKeyLocal(post.created_at);
-  let section = document.getElementById('day-' + key);
-
-  if (!section) {
-    // New day at the top of the feed (e.g. first glimmer of today).
-    section = makeDaySection(key, post.created_at);
-    feed.insertBefore(section, feed.firstChild);
-  }
-  const cards = section.querySelector('.day-cards');
-  const card = buildCard(post, true);
-  cards.insertBefore(card, cards.firstChild);
-  sparkleCard(card);
+// ─── My Glimmers feed ─────────────────────────────────────────────────────────
+function myEmptyState() {
+  return `<div class="empty"><div class="icon">✦</div><p>You haven't shared any Glimmers yet. <span class="empty-cta" onclick="goCompose()">Post one 😉</span></p></div>`;
 }
 
-function sparkleCard(card) {
-  if (!card) return;
-  setTimeout(() => {
-    const rect = card.getBoundingClientRect();
-    spawnSparkles(rect.left + rect.width / 2, rect.top + 40);
-  }, 400);
+let myGlimmersLoaded = false;
+
+async function loadMyGlimmers() {
+  const feed = document.getElementById('myFeed');
+  feed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>Loading your glimmers...</p></div>`;
+
+  const { data, error } = await db
+    .from('glimmers')
+    .select('*')
+    .eq('session_id', SESSION_ID)
+    .eq('reported', false)
+    .order('created_at', { ascending: false });
+
+  myGlimmersLoaded = true;
+
+  if (error || !data || data.length === 0) {
+    feed.innerHTML = myEmptyState();
+    return;
+  }
+
+  feed.innerHTML = '';
+  data.forEach(p => appendPost(p, false, feed));
 }
 
 // ─── Real-time subscription ───────────────────────────────────────────────────
@@ -1358,93 +1401,59 @@ function subscribeToGlimmers() {
       schema: 'public',
       table: 'glimmers'
     }, (payload) => {
-      // Only stream into the live "all glimmers" view, not the "my glimmers" view.
-      if (showingMyGlimmers) return;
-      insertIntoFeed(payload.new);
+      // Stream into the live All Glimmers feed (it's always the source of truth,
+      // even while blurred). Own posts also get mirrored into My Glimmers.
+      insertIntoFeed(payload.new, document.getElementById('allFeed'));
+      if (payload.new.session_id === SESSION_ID && myGlimmersLoaded) {
+        insertIntoFeed(payload.new, document.getElementById('myFeed'));
+      }
     })
     .on('postgres_changes', {
       event: 'UPDATE',
       schema: 'public',
       table: 'glimmers'
     }, (payload) => {
-      // Update heart count on existing card without re-rendering
-      const card = document.querySelector(`[data-id="${payload.new.id}"]`);
-      if (card) {
+      // Update heart/comment counts on every card for this glimmer (it may live
+      // in both the All and My feeds) without re-rendering.
+      document.querySelectorAll(`[data-id="${payload.new.id}"]`).forEach(card => {
         const countEl = card.querySelector('.heart-count');
         if (countEl) countEl.textContent = payload.new.hearts;
         const commentEl = card.querySelector('.comment-count');
         if (commentEl && payload.new.comments != null) commentEl.textContent = payload.new.comments;
-      }
+      });
     })
     .subscribe();
 }
 
-// ─── Menu ─────────────────────────────────────────────────────────────────────
-function toggleMenu(e) {
-  e.stopPropagation();
-  document.getElementById('menuDropdown').classList.toggle('open');
+// ─── Tabs ─────────────────────────────────────────────────────────────────────
+let activeTab = 'all';
+
+function switchTab(tab, opts = {}) {
+  activeTab = tab;
+  const isAll = tab === 'all';
+
+  document.getElementById('tabAll').classList.toggle('active', isAll);
+  document.getElementById('tabMine').classList.toggle('active', !isAll);
+  document.getElementById('panelAll').classList.toggle('active', isAll);
+  document.getElementById('panelMine').classList.toggle('active', !isAll);
+
+  if (!opts.silent) window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  // My Glimmers is always available — load it the first time it's opened.
+  if (!isAll && !myGlimmersLoaded) {
+    loadMyGlimmers();
+  }
 }
 
-document.addEventListener('click', () => {
-  document.getElementById('menuDropdown').classList.remove('open');
-});
-
-// ─── Logo → home: refresh back to the latest all-glimmers feed ───────────────
+// ─── Logo → home: back to the top of All Glimmers ─────────────────────────────
 function goHome() {
-  if (document.body.classList.contains('locked')) return; // no-op on the landing gate
-  if (showingMyGlimmers) {
-    showingMyGlimmers = false;
-    const item = document.getElementById('myGlimmersItem');
-    item.classList.remove('active');
-    item.textContent = '✦ my glimmers';
-  }
+  switchTab('all');
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  loadGlimmers();
 }
 
-// ─── My Glimmers ─────────────────────────────────────────────────────────────
-let showingMyGlimmers = false;
-
-async function toggleMyGlimmers() {
-  document.getElementById('menuDropdown').classList.remove('open');
-  showingMyGlimmers = !showingMyGlimmers;
-  const item = document.getElementById('myGlimmersItem');
-
-  if (showingMyGlimmers) {
-    item.classList.add('active');
-    item.textContent = '✦ all glimmers';
-    await loadMyGlimmers();
-  } else {
-    item.classList.remove('active');
-    item.textContent = '✦ my glimmers';
-    await loadGlimmers();
-  }
-}
-
-async function loadMyGlimmers() {
-  const feed = document.getElementById('feed');
-  feed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>Loading your glimmers...</p></div>`;
-  feedExhausted = true; // no pagination in this view
-
-  const { data, error } = await db
-    .from('glimmers')
-    .select('*')
-    .eq('session_id', SESSION_ID)
-    .eq('reported', false)
-    .order('created_at', { ascending: false });
-
-  if (error || !data || data.length === 0) {
-    feed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>You haven't shared any glimmers yet.</p></div>`;
-    return;
-  }
-
-  feed.innerHTML = '';
-  data.forEach(p => appendPost(p, false));
-}
-
-// ─── Typing intro (landing only) ──────────────────────────────────────────────
-// Types "It's <date>.\nWhat's a moment of peace, joy, or gratitude that you
-// experienced today?" then, after a pause, fades the compose box in.
+// ─── Typing intro (All Glimmers landing, while locked) ────────────────────────
+// Types "It's <date>. What's a moment of peace, joy, or gratitude that you
+// experienced today?" then, after a pause, fades the inline compose box in.
 function startTypingIntro() {
   const full = "It's " + formatDayLabel(Date.now()) +
     ".\n\nWhat's a moment of peace, joy, or gratitude that you experienced today?";
@@ -1462,25 +1471,24 @@ function startTypingIntro() {
       setTimeout(tick, delay);
     } else {
       caret.style.display = 'none';
-      setTimeout(() => compose.classList.add('intro-revealed'), 1400);
+      setTimeout(() => compose.classList.add('intro-revealed'), 1100);
     }
   }
   setTimeout(tick, 400);
 }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
-function unlockFeed() {
+function unlockState() {
   document.body.classList.remove('locked');
   document.body.classList.add('unlocked');
-  document.getElementById('feedWrap').classList.add('feed-reveal');
-  loadGlimmers();
 }
 
 async function boot() {
   subscribeToGlimmers();
 
   if (hasEnteredToday()) {
-    unlockFeed();
+    unlockState();
+    await loadAllGlimmers();
     return;
   }
 
@@ -1497,12 +1505,14 @@ async function boot() {
 
   if (data && data.length) {
     setEnteredToday();
-    unlockFeed();
+    unlockState();
+    await loadAllGlimmers();
     return;
   }
-  // Stay locked, but load the feed as a blurred underlay (social proof that
+
+  // Stay locked: load the All feed as a blurred underlay (social proof that
   // people are sharing) — the CSS blurs it and blocks interaction until unlock.
-  loadGlimmers();
+  await loadAllGlimmers();
 }
 
 // Run the typing intro immediately for a locked landing (don't wait on the
