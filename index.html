@@ -127,13 +127,13 @@
   /* ── Typing intro prompt (All Glimmers landing, while locked) ─────────────── */
   .typing-prompt {
     font-family: 'Instrument Serif', serif;
-    font-size: 30px;
+    font-size: 27px;
     line-height: 1.3;
     text-align: center;
     white-space: pre-line;
     color: var(--ink);
-    min-height: 4.6em;
-    margin: 8px 0 28px;
+    min-height: 3em;
+    margin: 8px 0 18px;
   }
   body.unlocked .typing-prompt { display: none; }
 
@@ -151,12 +151,16 @@
   /* ── Locked-feed teaser + unlock CTA ──────────────────────────────────────── */
   #allFeedWrap { transition: filter 0.6s ease, opacity 0.6s ease; }
   /* Locked: the live feed is shown but heavily blurred — social proof that
-     people are sharing, unreadable until you post today's glimmer. */
+     people are sharing, unreadable until you post today's glimmer. While
+     locked it's also hard-capped to ~3 glimmers tall (no scroll). Once
+     unlocked, the cap lifts and the feed scrolls infinitely down the page. */
   body.locked #allFeedWrap {
     filter: blur(7px);
     opacity: 0.5;
     pointer-events: none;
     user-select: none;
+    max-height: 560px;
+    overflow: hidden;
   }
 
   .feed-reveal { animation: revealUp 0.6s cubic-bezier(0.4,0,0.2,1) both; }
@@ -210,11 +214,17 @@
 
   .regenerate-btn {
     margin-left: auto;
+    flex-shrink: 0;
     background: none;
     border: 1px solid var(--border);
-    border-radius: 20px;
-    padding: 4px 10px;
-    font-size: 11px;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 15px;
+    line-height: 1;
     color: var(--ink-light);
     cursor: pointer;
     font-family: 'DM Sans', sans-serif;
@@ -241,7 +251,7 @@
     line-height: 1.6;
     color: var(--ink);
     background: transparent;
-    min-height: 72px;
+    min-height: 110px;
   }
 
   textarea::placeholder { color: #C5BFB5; }
@@ -608,6 +618,9 @@
     pointer-events: none;
     z-index: 300;
   }
+  /* On the locked compose landing the contained feed needs no page-bottom fade —
+     and it would otherwise wash out the compose box (notably on mobile). */
+  body.locked .fade-bottom { display: none; }
 </style>
 </head>
 <body class="locked">
@@ -637,9 +650,9 @@
         <div class="avatar" id="myAvatar"></div>
         <div>
           <div class="username-display" id="myUsernameDisplay"></div>
-          <div style="font-size:11px;color:var(--ink-light);font-weight:300;margin-top:1px;">your anonymous name for this session</div>
+          <div style="font-size:11px;color:var(--ink-light);font-weight:300;margin-top:1px;white-space:nowrap;">your anonymous name for today</div>
         </div>
-        <button class="regenerate-btn" onclick="regenerateUsername()">↻ new name</button>
+        <button class="regenerate-btn" onclick="regenerateUsername()" title="New name" aria-label="New name">↻</button>
       </div>
       <span class="prompt-label">My glimmer of the day was...</span>
       <textarea id="glimmerInput" placeholder="a stranger held the door open and smiled at me" maxlength="180" oninput="onInput()" rows="3"></textarea>
@@ -1456,7 +1469,7 @@ function goHome() {
 // experienced today?" then, after a pause, fades the inline compose box in.
 function startTypingIntro() {
   const full = "It's " + formatDayLabel(Date.now()) +
-    ".\n\nWhat's a moment of peace, joy, or gratitude that you experienced today?";
+    ".\nWhat's a moment of peace, joy, or gratitude that you experienced today?";
   const el = document.getElementById('typedText');
   const caret = document.getElementById('typeCaret');
   const compose = document.getElementById('composeBox');
