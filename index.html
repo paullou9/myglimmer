@@ -117,48 +117,12 @@
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* ── Compose hint (below the compose box, while locked) ──────────────────── */
-  .compose-hint {
-    font-family: 'DM Sans', sans-serif;
-    font-size: 13px;
-    font-weight: 400;
-    text-align: center;
-    color: var(--ink-light);
-    margin-top: 16px;
-  }
-
-  /* ── Locked-feed teaser + unlock CTA ──────────────────────────────────────── */
-  #allFeedWrap { transition: filter 0.6s ease, opacity 0.6s ease; }
-  /* Locked: the live feed is shown but heavily blurred — social proof that
-     people are sharing, unreadable until you post today's glimmer. While
-     locked it's also hard-capped to ~3 glimmers tall (no scroll). Once
-     unlocked, the cap lifts and the feed scrolls infinitely down the page. */
-  body.locked #allFeedWrap {
-    filter: blur(7px);
-    opacity: 0.5;
-    pointer-events: none;
-    user-select: none;
-    max-height: 560px;
-    overflow: hidden;
-  }
-
-  .feed-reveal { animation: revealUp 0.6s cubic-bezier(0.4,0,0.2,1) both; }
-  @keyframes revealUp {
-    from { opacity: 0; transform: translateY(16px); }
-    to { opacity: 1; transform: translateY(0); }
-  }
-
-  /* ── Compose (inline, on the locked All Glimmers tab) ─────────────────────── */
+  /* ── Compose (now opened as a modal via the floating button) ──────────────── */
   .compose {
     background: var(--warm-white);
-    border: 1px solid var(--border);
     border-radius: 16px;
     padding: 24px;
-    margin-bottom: 40px;
-    box-shadow: var(--shadow);
   }
-  /* Once today's glimmer is shared, the compose box is gone */
-  body.unlocked #composeBox { display: none; }
 
   .username-row {
     display: flex;
@@ -245,7 +209,7 @@
   .char-count.warn { color: var(--rose); }
 
   .submit-btn {
-    background: var(--ink);
+    background: var(--amber);
     color: var(--warm-white);
     border: none;
     border-radius: 100px;
@@ -259,7 +223,7 @@
     align-items: center;
     gap: 6px;
   }
-  .submit-btn:hover { background: #2E2C28; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(28,26,23,0.2); }
+  .submit-btn:hover { background: #D2962B; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(232,168,56,0.35); }
   .submit-btn:active { transform: translateY(0); }
   .submit-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
 
@@ -475,7 +439,7 @@
     color: var(--ink-light);
   }
   .empty .icon { font-size: 36px; margin-bottom: 12px; }
-  .empty p { font-family: 'Lora', serif; font-style: italic; font-size: 15px; }
+  .empty p { font-family: 'Instrument Serif', serif; font-size: 19px; }
   .empty .empty-cta {
     color: var(--amber);
     font-style: normal;
@@ -525,6 +489,69 @@
 
   .modal h3 { font-family: 'Lora', serif; font-size: 18px; margin-bottom: 8px; }
   .modal p { font-size: 13px; color: var(--ink-light); line-height: 1.5; margin-bottom: 20px; }
+
+  /* ── Compose modal (opened from the floating button) ──────────────────────── */
+  .compose-modal {
+    position: relative;
+    width: 90%;
+    max-width: 520px;
+    animation: composeIn 0.22s cubic-bezier(0.4,0,0.2,1) both;
+  }
+  @keyframes composeIn {
+    from { opacity: 0; transform: translateY(12px) scale(0.98); }
+    to { opacity: 1; transform: translateY(0) scale(1); }
+  }
+  .compose-modal .compose { box-shadow: 0 20px 60px rgba(28,26,23,0.25); }
+  .compose-close {
+    position: absolute;
+    top: -14px;
+    right: -14px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    border: none;
+    background: var(--ink);
+    color: var(--warm-white);
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-lift);
+    transition: transform 0.15s, background 0.15s;
+    z-index: 1;
+  }
+  .compose-close:hover { background: #2E2C28; transform: scale(1.08); }
+
+  /* ── Floating compose button (FAB) ────────────────────────────────────────── */
+  .fab {
+    position: fixed;
+    right: 24px;
+    bottom: 24px;
+    width: 60px;
+    height: 60px;
+    border-radius: 50%;
+    border: none;
+    background: var(--amber);
+    cursor: pointer;
+    z-index: 3000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-lift);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .fab:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(28,26,23,0.32); }
+  .fab:active { transform: translateY(0); }
+  .fab svg { width: 46px; height: 46px; display: block; }
+  /* Already shared today — the button stays as a gentle reminder, slightly muted */
+  .fab.shared { opacity: 0.55; }
+  .fab.shared:hover { transform: none; box-shadow: var(--shadow-lift); }
+  /* While the compose modal (z-index 4000) is open, the FAB sits behind it */
+  @media (max-width: 520px) {
+    .fab { right: 18px; bottom: 18px; width: 56px; height: 56px; }
+  }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
   .btn-secondary {
@@ -564,8 +591,7 @@
     letter-spacing: 0;
     color: var(--ink);
     margin: 0 0 20px;
-    padding: 0 0 12px;
-    border-bottom: 1px solid var(--border);
+    padding: 0;
   }
   .day-heading .today-tag {
     color: var(--amber);
@@ -590,12 +616,9 @@
     pointer-events: none;
     z-index: 300;
   }
-  /* On the locked compose landing the contained feed needs no page-bottom fade —
-     and it would otherwise wash out the compose box (notably on mobile). */
-  body.locked .fade-bottom { display: none; }
 </style>
 </head>
-<body class="locked">
+<body>
 
 <div class="page">
   <header>
@@ -615,26 +638,6 @@
 
   <!-- ── All Glimmers panel ──────────────────────────────────────────────── -->
   <div class="tab-panel active" id="panelAll">
-    <div class="compose" id="composeBox">
-      <div class="username-row">
-        <div class="avatar" id="myAvatar"></div>
-        <div>
-          <div class="username-display" id="myUsernameDisplay"></div>
-          <div style="font-size:11px;color:var(--ink-light);font-weight:300;margin-top:1px;white-space:nowrap;">your anonymous name for today</div>
-        </div>
-        <button class="regenerate-btn" onclick="regenerateUsername()" title="New name" aria-label="New name">↻</button>
-      </div>
-      <span class="prompt-label">My glimmer of the day was...</span>
-      <textarea id="glimmerInput" placeholder="a stranger held the door open and smiled at me" maxlength="180" oninput="onInput()" rows="3"></textarea>
-      <div class="compose-footer">
-        <span class="char-count" id="charCount">180 left</span>
-        <button class="submit-btn" id="submitBtn" onclick="submitGlimmer()" disabled>
-          <span>✦</span> Share my glimmer
-        </button>
-      </div>
-      <div class="compose-hint">Add a glimmer to see today's glimmers :)</div>
-    </div>
-
     <div id="allFeedWrap">
       <div id="allFeed">
         <div class="empty"><div class="icon">✦</div><p>Loading glimmers...</p></div>
@@ -653,7 +656,50 @@
 
 <div class="fade-bottom"></div>
 
+<!-- ── Floating compose button: white glimmer star with a pencil tipping its ──
+     centre. The pencil "knocks out" the star stroke it crosses (an amber gap)
+     so it reads as floating above, à la X's compose button. ─────────────────── -->
+<button class="fab" id="composeFab" onclick="openCompose()" aria-label="Share a glimmer" title="Share a glimmer">
+  <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
+    <!-- four-pointed glimmer star, outline -->
+    <path d="M30,10.24 L35.65,24.35 L49.76,30 L35.65,35.65 L30,49.76 L24.35,35.65 L10.24,30 L24.35,24.35 Z"
+          fill="none" stroke="#FFFFFF" stroke-width="2.1" stroke-linejoin="round"/>
+    <!-- pencil: amber knockout cuts the gap, white outline on top -->
+    <g transform="rotate(45 36.79 23.21)">
+      <path d="M34.68,13.59 L38.91,13.59 L38.91,28.94 L36.79,32.82 L34.68,28.94 Z"
+            fill="#E8A838" stroke="#E8A838" stroke-width="4.6" stroke-linejoin="round"/>
+      <path d="M34.68,13.59 L38.91,13.59 L38.91,28.94 L36.79,32.82 L34.68,28.94 Z"
+            fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
+    </g>
+  </svg>
+</button>
+
 <div class="toast" id="toast"></div>
+
+<!-- ── Compose modal ─────────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="composeOverlay">
+  <div class="compose-modal">
+    <button class="compose-close" onclick="closeCompose()" aria-label="Close">✕</button>
+    <div class="compose" id="composeBox">
+      <div class="username-row">
+        <div class="avatar" id="myAvatar"></div>
+        <div>
+          <div class="username-display" id="myUsernameDisplay"></div>
+          <div style="font-size:11px;color:var(--ink-light);font-weight:300;margin-top:1px;white-space:nowrap;">your anonymous name for today</div>
+        </div>
+        <button class="regenerate-btn" onclick="regenerateUsername()" title="New name" aria-label="New name">↻</button>
+      </div>
+      <span class="prompt-label">My glimmer of the day was...</span>
+      <textarea id="glimmerInput" placeholder="a stranger held the door open and smiled at me" maxlength="180" oninput="onInput()" rows="3"></textarea>
+      <div class="compose-footer">
+        <span class="char-count" id="charCount">180 left</span>
+        <button class="submit-btn" id="submitBtn" onclick="submitGlimmer()" disabled>
+          <span>✦</span> Share my glimmer
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <div class="modal-overlay" id="reportModal">
   <div class="modal">
@@ -787,19 +833,29 @@ function moderateText(text) {
   return blocklist.some(w => lower.includes(w));
 }
 
-// ─── Jump to the inline compose box (from "Post one 😉" on My Glimmers) ───────
-function goCompose() {
-  if (document.body.classList.contains('unlocked')) {
+// ─── Compose modal (opened from the floating button) ─────────────────────────
+function openCompose() {
+  // One glimmer per day — if today's is already shared, nudge instead of opening.
+  if (hasEnteredToday()) {
     showToast('You\'ve already shared your glimmer today ✦');
     return;
   }
-  switchTab('all');
-  const box = document.getElementById('composeBox');
-  setTimeout(() => {
-    box.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    document.getElementById('glimmerInput').focus();
-  }, 120);
+  document.getElementById('composeOverlay').classList.add('open');
+  setTimeout(() => document.getElementById('glimmerInput').focus(), 60);
 }
+
+function closeCompose() {
+  document.getElementById('composeOverlay').classList.remove('open');
+}
+
+// Reflect the "already shared today" state on the floating button.
+function markFabShared() {
+  const fab = document.getElementById('composeFab');
+  if (fab) fab.classList.add('shared');
+}
+
+// "Post one 😉" CTA on the empty My Glimmers state.
+function goCompose() { openCompose(); }
 
 // ─── Submit ──────────────────────────────────────────────────────────────────
 async function submitGlimmer() {
@@ -816,18 +872,15 @@ async function submitGlimmer() {
   btn.disabled = true;
 
   const newPost = { username: myUsername, text, hearts: 0 };
-  const wasLocked = document.body.classList.contains('locked');
 
-  // First participation today unlocks the All Glimmers feed. Reveal it now so
-  // the flying card has somewhere to land — but keep the compose box visible
-  // (we only add `unlocked`, which hides it, once the card has landed).
-  if (wasLocked) {
-    setEnteredToday();
-    document.body.classList.remove('locked');
-    document.getElementById('allFeedWrap').classList.add('feed-reveal');
-    switchTab('all', { silent: true });
-    await loadAllGlimmers();
-  }
+  // The feed is always visible now; make sure we're on the All tab so the
+  // flying card has somewhere to land. Capture the compose box position while
+  // the modal is still open, then close it and fly the card from that spot.
+  setEnteredToday();
+  markFabShared();
+  switchTab('all', { silent: true });
+  const startRect = document.getElementById('composeBox').getBoundingClientRect();
+  closeCompose();
 
   flyCard(newPost, async () => {
     const { data, error } = await db
@@ -844,18 +897,15 @@ async function submitGlimmer() {
 
     input.value = '';
     onInput();
-    // The daily glimmer is shared — collapse the compose box, drop the lock.
-    document.body.classList.add('unlocked');
     showToast('Your glimmer is out in the world ✦');
     // Real-time will add the card to the All feed; mirror it into My Glimmers too.
     insertIntoFeed(data, document.getElementById('myFeed'));
-  });
+  }, startRect);
 }
 
 // ─── Flying card animation ───────────────────────────────────────────────────
-function flyCard(post, onComplete) {
-  const composeBox = document.getElementById('composeBox');
-  const rect = composeBox.getBoundingClientRect();
+function flyCard(post, onComplete, startRect) {
+  const rect = startRect || document.getElementById('composeBox').getBoundingClientRect();
 
   const flying = document.createElement('div');
   flying.className = 'flying-card';
@@ -1325,7 +1375,6 @@ async function loadAllGlimmers() {
 async function loadMore() {
   if (feedExhausted || feedLoading) return;
   if (activeTab !== 'all') return;
-  if (document.body.classList.contains('locked')) return; // blurred underlay stays a teaser
   feedLoading = true;
   const posts = await fetchPage(feedOffset);
   feedLoading = false;
@@ -1435,22 +1484,19 @@ function goHome() {
 }
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
-function unlockState() {
-  document.body.classList.remove('locked');
-  document.body.classList.add('unlocked');
-}
-
 async function boot() {
   subscribeToGlimmers();
+  // The feed is open to everyone now — always load it.
+  await loadAllGlimmers();
 
+  // Determine whether today's glimmer is already shared (gates the FAB, which
+  // allows one glimmer per day). Trust the local flag first; fall back to a DB
+  // check in case this session shared from another tab/visit.
   if (hasEnteredToday()) {
-    unlockState();
-    await loadAllGlimmers();
+    markFabShared();
     return;
   }
 
-  // Resilience: maybe this session already shared today from another tab/visit
-  // before the local flag was set. If so, honor it and unlock.
   const midnight = new Date();
   midnight.setHours(0, 0, 0, 0);
   const { data } = await db
@@ -1462,14 +1508,8 @@ async function boot() {
 
   if (data && data.length) {
     setEnteredToday();
-    unlockState();
-    await loadAllGlimmers();
-    return;
+    markFabShared();
   }
-
-  // Stay locked: load the All feed as a blurred underlay (social proof that
-  // people are sharing) — the CSS blurs it and blocks interaction until unlock.
-  await loadAllGlimmers();
 }
 
 boot();
