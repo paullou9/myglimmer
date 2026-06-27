@@ -51,22 +51,137 @@
   }
 
   header {
-    text-align: center;
-    padding: 22px 0 14px;
+    text-align: left;
+    padding: 22px 0 18px;
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--border);
   }
 
   .logo {
+    display: inline-block;
     font-family: 'Instrument Serif', serif;
-    font-size: 46px;
+    font-size: 38px;
     font-weight: 400;
-    letter-spacing: -0.5px;
-    color: var(--ink);
+    letter-spacing: -0.3px;
     line-height: 1;
-    margin-bottom: 6px;
     cursor: pointer;
+    color: var(--ink);
   }
 
-  .logo span { color: var(--amber); }
+  /* ── Loading screen ───────────────────────────────────────────────────────── */
+  #loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 38px;
+    padding: 40px;
+    /* Warm, uneven amber wash — slightly mottled so it reads less flat / more vintage */
+    background:
+      radial-gradient(120% 90% at 30% 20%, #EDB24E 0%, rgba(237,178,78,0) 55%),
+      radial-gradient(120% 110% at 80% 90%, #D8922B 0%, rgba(216,146,43,0) 55%),
+      var(--amber);
+    color: #fff;
+    text-align: center;
+    opacity: 1;
+    transition: opacity 0.6s ease;
+    overflow: hidden;
+  }
+  #loading-screen.is-hidden {
+    opacity: 0;
+    pointer-events: none;
+  }
+  /* Soft vignette — darkens the edges for an aged, dreamlike depth */
+  #loading-screen::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    background: radial-gradient(115% 95% at 50% 42%, rgba(0,0,0,0) 52%, rgba(120,72,12,0.28) 100%);
+  }
+  /* Film grain — a turbulence texture that drifts slightly so it shimmers like old film */
+  #loading-screen::after {
+    content: '';
+    position: absolute;
+    inset: -50%;
+    z-index: 2;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23g)' opacity='0.6'/%3E%3C/svg%3E");
+    opacity: 0.5;
+    mix-blend-mode: overlay;
+    animation: grainDrift 0.6s steps(3) infinite;
+  }
+  @keyframes grainDrift {
+    0%   { transform: translate(0, 0); }
+    33%  { transform: translate(-6%, 4%); }
+    66%  { transform: translate(5%, -5%); }
+    100% { transform: translate(0, 0); }
+  }
+  /* Keep the logo / definition / spinner above the grain + vignette */
+  #loading-screen > * { position: relative; z-index: 3; }
+
+  .loading-logo {
+    line-height: 1;
+    color: #fff;
+  }
+  .loading-logo .spark {
+    display: inline-block;
+    font-size: 80px;
+    line-height: 1;
+  }
+
+  .loading-def {
+    max-width: 460px;
+    text-align: left;
+  }
+  .loading-headword {
+    font-family: 'Instrument Serif', serif;
+    font-size: 34px;
+    font-weight: 400;
+    color: #fff;
+    margin-bottom: 14px;
+    letter-spacing: 0.01em;
+  }
+  .loading-headword .pos {
+    font-style: italic;
+    font-size: 26px;
+    opacity: 0.85;
+  }
+
+  .loading-body {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 22px;
+    line-height: 1.55;
+    color: #fff;
+  }
+  .loading-body .attr {
+    display: block;
+    margin-top: 14px;
+    font-style: italic;
+    opacity: 0.9;
+  }
+
+  /* Loading spinner — simple circular movement */
+  .loading-spiral {
+    width: 44px;
+    height: 44px;
+    animation: loadingSpin 0.9s linear infinite;
+  }
+  .loading-spiral circle {
+    fill: none;
+    stroke: #fff;
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-dasharray: 90 126;
+  }
+
+  @keyframes loadingSpin {
+    to { transform: rotate(360deg); }
+  }
 
   .tagline {
     font-size: 14px;
@@ -77,23 +192,28 @@
 
   /* ── Tab bar ──────────────────────────────────────────────────────────────── */
   .tabs {
-    position: sticky;
-    top: 0;
-    z-index: 400;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 500;
+    max-width: 680px;
+    margin: 0 auto;
     display: flex;
     gap: 4px;
-    background: var(--cream);
-    padding: 14px 0 0;
-    margin-bottom: 28px;
-    border-bottom: 1px solid var(--border);
+    background: var(--warm-white);
+    padding: 8px 44px;
+    padding-bottom: max(8px, env(safe-area-inset-bottom));
+    border-top: 1px solid var(--border);
+    box-shadow: 0 -4px 24px rgba(28,26,23,0.06);
   }
 
   .tab {
     flex: 1;
     background: none;
     border: none;
-    border-bottom: 2px solid transparent;
-    padding: 12px 8px 14px;
+    border-top: 2px solid transparent;
+    padding: 18px 8px 16px;
     font-family: 'DM Sans', sans-serif;
     font-size: 15px;
     font-weight: 500;
@@ -104,10 +224,21 @@
     align-items: center;
     justify-content: center;
     gap: 7px;
-    margin-bottom: -1px;
+    margin-top: -1px;
   }
   .tab:hover { color: var(--ink); }
-  .tab.active { color: var(--ink); border-bottom-color: var(--amber); }
+  .tab.active { color: var(--ink); border-top-color: var(--amber); }
+  .tab svg {
+    width: 23px;
+    height: 23px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.7;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    transition: stroke 0.2s;
+  }
+  .tab.active svg { stroke-width: 1.9; }
 
   /* ── Tab panels ───────────────────────────────────────────────────────────── */
   .tab-panel { display: none; }
@@ -116,6 +247,94 @@
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
   }
+
+  /* ── Solo (one-at-a-time) All feed ────────────────────────────────────────── */
+  .solo-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 22px;
+  }
+  .order-toggle {
+    display: inline-flex;
+    background: rgba(28,26,23,0.05);
+    border-radius: 100px;
+    padding: 3px;
+  }
+  .order-btn {
+    border: none;
+    background: none;
+    cursor: pointer;
+    line-height: 0;
+    color: var(--ink-light);
+    padding: 7px 16px;
+    border-radius: 100px;
+    transition: color 0.2s, background 0.2s, box-shadow 0.2s;
+  }
+  .order-btn svg {
+    width: 18px;
+    height: 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+    display: block;
+  }
+  .order-btn.active {
+    color: var(--ink);
+    background: var(--warm-white);
+    box-shadow: 0 1px 4px rgba(28,26,23,0.1);
+  }
+  .solo-counter {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 12px;
+    color: var(--ink-light);
+    letter-spacing: 0.02em;
+    white-space: nowrap;
+  }
+
+  /* ── Card deck (Tinder-style stack) ───────────────────────────────────────── */
+  .solo-stage { touch-action: pan-y; }
+  .deck {
+    position: relative;
+    min-height: 200px;
+  }
+  /* Decorative cards peeking out behind the top one — the "more underneath" cue. */
+  .deck-back {
+    position: absolute;
+    inset: 0;
+    border-radius: 14px;
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow);
+    transform-origin: top center;
+    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
+  }
+  .deck-back-1 { transform: translateY(22px) scale(0.95); z-index: 1; }
+  .deck-back-2 { transform: translateY(44px) scale(0.90); z-index: 0; }
+  .deck.is-last .deck-back { opacity: 0; transform: translateY(0) scale(1); }
+
+  .deck-top {
+    position: relative;
+    z-index: 2;
+    cursor: grab;
+    touch-action: pan-y;
+    will-change: transform;
+  }
+  .deck-top:active { cursor: grabbing; }
+  .deck-top .glimmer-card { margin-bottom: 0; cursor: inherit; animation: none; }
+  .deck-top .glimmer-card:hover { transform: none; box-shadow: var(--shadow); }
+  /* Interactive widgets inside the card shouldn't trigger a drag-grab cursor. */
+  .deck-top button, .deck-top textarea, .deck-top a { cursor: pointer; }
+  .deck-top textarea { cursor: text; }
+
+  @keyframes deckPromote {
+    from { opacity: 0; transform: translateY(14px) scale(0.95); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+  }
+
 
   /* ── Compose (now opened as a modal via the floating button) ──────────────── */
   .compose {
@@ -192,6 +411,32 @@
 
   textarea::placeholder { color: #C5BFB5; }
 
+  /* Optional city share in the composer */
+  .location-row { margin-top: 6px; }
+  .location-toggle {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 6px 13px;
+    cursor: pointer;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink-light);
+    transition: color 0.2s, border-color 0.2s, background 0.2s;
+  }
+  .location-toggle:hover { color: var(--amber); border-color: var(--amber); }
+  .location-toggle.active { color: var(--amber); border-color: rgba(232,168,56,0.4); background: rgba(232,168,56,0.08); }
+  .location-toggle:disabled { opacity: 0.6; cursor: default; }
+  .location-toggle .loc-icon {
+    width: 14px; height: 14px;
+    fill: none; stroke: currentColor; stroke-width: 1.7;
+    stroke-linejoin: round; stroke-linecap: round;
+  }
+  .location-toggle.active .loc-icon { fill: rgba(232,168,56,0.25); }
+
   .compose-footer {
     display: flex;
     align-items: center;
@@ -241,15 +486,31 @@
 
   /* Cards */
   .glimmer-card {
+    position: relative;
     background: var(--warm-white);
     border: 1px solid var(--border);
     border-radius: 14px;
-    padding: 20px 22px;
+    padding: 44px 34px;
     margin-bottom: 12px;
     box-shadow: var(--shadow);
     transition: box-shadow 0.2s, transform 0.2s;
     animation: cardEnter 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both;
   }
+  /* Fine paper grain — a heritage, printed-on-stock texture under the content */
+  .glimmer-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='c'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23c)'/%3E%3C/svg%3E");
+    background-size: 160px 160px;
+    opacity: 0.22;
+    mix-blend-mode: multiply;
+  }
+  /* Content rides above the grain layer */
+  .glimmer-card > * { position: relative; z-index: 1; }
 
   .glimmer-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-1px); }
 
@@ -262,7 +523,7 @@
     display: flex;
     align-items: center;
     gap: 9px;
-    margin-bottom: 12px;
+    margin-bottom: 26px;
   }
 
   .card-avatar {
@@ -281,12 +542,21 @@
   .card-username { font-size: 13px; font-weight: 500; color: var(--ink); }
   .card-date { font-size: 11px; color: var(--ink-light); font-weight: 300; }
 
+  .card-prompt {
+    font-family: 'Times New Roman', Times, serif;
+    font-style: italic;
+    font-size: 15px;
+    line-height: 1.4;
+    color: var(--ink-light);
+    margin-bottom: 10px;
+  }
+
   .card-text {
     font-family: 'Times New Roman', Times, serif;
-    font-size: 17px;
+    font-size: 20px;
     line-height: 1.6;
-    color: var(--ink);
-    margin-bottom: 14px;
+    color: #423C34; /* warm, softened ink — less hostile than near-black */
+    margin-bottom: 42px;
   }
 
   .card-actions { display: flex; align-items: center; gap: 6px; }
@@ -328,7 +598,34 @@
   }
   .comment-btn:hover { border-color: var(--sage, #7B9E87); color: var(--sage, #7B9E87); background: rgba(123,158,135,0.05); }
   .comment-btn.open { background: rgba(123,158,135,0.08); border-color: rgba(123,158,135,0.3); color: var(--sage, #7B9E87); }
-  .comment-icon { font-size: 13px; }
+  .comment-icon { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; }
+
+  /* Save button — bookmark, amber accent; outline by default, filled when saved */
+  .save-btn {
+    display: flex;
+    align-items: center;
+    background: none;
+    border: 1px solid var(--border);
+    border-radius: 100px;
+    padding: 5px 11px;
+    cursor: pointer;
+    color: var(--ink-light);
+    transition: all 0.2s;
+  }
+  .save-btn:hover { border-color: var(--amber); color: var(--amber); background: rgba(232,168,56,0.06); }
+  .save-btn.saved { background: rgba(232,168,56,0.1); border-color: rgba(232,168,56,0.4); color: var(--amber); }
+  .save-icon { width: 15px; height: 15px; fill: none; stroke: currentColor; stroke-width: 1.5; stroke-linejoin: round; transition: transform 0.15s cubic-bezier(0.34,1.56,0.64,1); }
+  .save-btn.saved .save-icon { fill: currentColor; }
+  .save-btn:active .save-icon { transform: scale(1.25); }
+
+  /* Identical pill dimensions across heart / comment / save. */
+  .heart-btn, .comment-btn, .save-btn {
+    height: 34px;
+    padding: 0 14px;
+    gap: 6px;
+    justify-content: center;
+  }
+  .heart-btn .heart-icon { width: 15px; text-align: center; }
 
   /* Comment thread — hidden until the card is expanded */
   .comment-thread {
@@ -439,7 +736,7 @@
     color: var(--ink-light);
   }
   .empty .icon { font-size: 36px; margin-bottom: 12px; }
-  .empty p { font-family: 'Instrument Serif', serif; font-size: 19px; }
+  .empty p { font-family: 'DM Sans', sans-serif; font-size: 15px; font-weight: 300; line-height: 1.6; }
   .empty .empty-cta {
     color: var(--amber);
     font-style: normal;
@@ -524,13 +821,80 @@
   }
   .compose-close:hover { background: #2E2C28; transform: scale(1.08); }
 
+  /* ── Glimmer shared success modal ─────────────────────────────────────────── */
+  .success-modal {
+    background: var(--warm-white);
+    border-radius: 20px;
+    padding: 40px 36px 32px;
+    max-width: 360px;
+    width: 90%;
+    text-align: center;
+    box-shadow: 0 20px 60px rgba(28,26,23,0.25);
+    animation: composeIn 0.28s cubic-bezier(0.34,1.56,0.64,1) both;
+  }
+  .success-check {
+    width: 84px;
+    height: 84px;
+    margin: 0 auto 22px;
+    display: block;
+  }
+  .success-check .ring {
+    fill: none;
+    stroke: var(--sage);
+    stroke-width: 4;
+    stroke-dasharray: 251;
+    stroke-dashoffset: 251;
+    animation: successRing 0.5s ease-out forwards;
+  }
+  .success-check .tick {
+    fill: none;
+    stroke: var(--sage);
+    stroke-width: 7;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    stroke-dasharray: 60;
+    stroke-dashoffset: 60;
+    animation: successTick 0.35s 0.4s ease-out forwards;
+  }
+  @keyframes successRing { to { stroke-dashoffset: 0; } }
+  @keyframes successTick { to { stroke-dashoffset: 0; } }
+
+  .success-modal h3 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 32px;
+    font-weight: 400;
+    color: var(--ink);
+    margin-bottom: 8px;
+  }
+  .success-modal p {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    color: var(--ink-light);
+    line-height: 1.55;
+    margin-bottom: 26px;
+  }
+  .success-ok {
+    width: 100%;
+    padding: 13px;
+    border: none;
+    border-radius: 100px;
+    background: var(--amber);
+    color: #fff;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 15px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: transform 0.15s, background 0.15s;
+  }
+  .success-ok:hover { background: #d99a2c; transform: translateY(-1px); }
+
   /* ── Floating compose button (FAB) ────────────────────────────────────────── */
   .fab {
     position: fixed;
     right: 24px;
-    bottom: 24px;
-    width: 60px;
-    height: 60px;
+    bottom: calc(96px + env(safe-area-inset-bottom));
+    width: 72px;
+    height: 72px;
     border-radius: 50%;
     border: none;
     background: var(--amber);
@@ -544,13 +908,13 @@
   }
   .fab:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(28,26,23,0.32); }
   .fab:active { transform: translateY(0); }
-  .fab svg { width: 46px; height: 46px; display: block; }
+  .fab svg { width: 55px; height: 55px; display: block; }
   /* Already shared today — the button stays as a gentle reminder, slightly muted */
   .fab.shared { opacity: 0.55; }
   .fab.shared:hover { transform: none; box-shadow: var(--shadow-lift); }
   /* While the compose modal (z-index 4000) is open, the FAB sits behind it */
   @media (max-width: 520px) {
-    .fab { right: 18px; bottom: 18px; width: 56px; height: 56px; }
+    .fab { right: 16px; bottom: calc(92px + env(safe-area-inset-bottom)); width: 67px; height: 67px; }
   }
   .modal-actions { display: flex; gap: 10px; justify-content: flex-end; }
 
@@ -606,43 +970,83 @@
   .feed-sentinel { height: 1px; width: 100%; }
 
   /* ── Bottom fade: content dissolves into the page as you scroll ───────────── */
-  .fade-bottom {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    height: 140px;
-    background: linear-gradient(to bottom, rgba(250,247,242,0) 0%, rgba(250,247,242,0.85) 60%, var(--cream) 100%);
-    pointer-events: none;
-    z-index: 300;
-  }
 </style>
 </head>
 <body>
 
+<!-- ── Loading screen ──────────────────────────────────────────────────────── -->
+<div id="loading-screen">
+  <div class="loading-logo"><span class="spark">✦</span></div>
+  <div class="loading-def">
+    <div class="loading-headword">glimmer <span class="pos">noun</span></div>
+    <p class="loading-body">
+      “Glimmers are tiny moments of goodness that help us remember that regulation, safety and connection is also possible.”
+      <span class="attr">— Deb Dana</span>
+    </p>
+  </div>
+  <svg class="loading-spiral" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" aria-label="Loading">
+    <circle cx="25" cy="25" r="20" />
+  </svg>
+</div>
+
 <div class="page">
   <header>
-    <div class="logo" onclick="goHome()">my glim<span>✦</span>mer</div>
-    <div class="tagline">one small joy, shared with the world</div>
+    <div class="logo" onclick="goHome()">MyGlimmer</div>
   </header>
 
   <!-- ── Tabs ────────────────────────────────────────────────────────────── -->
   <nav class="tabs">
-    <button class="tab active" id="tabAll" onclick="switchTab('all')">
-      All Glimmers
+    <button class="tab active" id="tabAll" onclick="switchTab('all')" title="Feed" aria-label="Feed">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 10.5 L12 4 L20 10.5 V19 a1 1 0 0 1-1 1 H5 a1 1 0 0 1-1-1 Z"/>
+        <path d="M9.5 20 v-5.5 h5 V20"/>
+      </svg>
     </button>
-    <button class="tab" id="tabMine" onclick="switchTab('mine')">
-      My Glimmers
+    <button class="tab" id="tabSaved" onclick="switchTab('saved')" title="Saved" aria-label="Saved">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M6.5 4 h11 a1 1 0 0 1 1 1 v15 l-6.5-3.8 L5.5 20 V5 a1 1 0 0 1 1-1 Z"/>
+      </svg>
+    </button>
+    <button class="tab" id="tabMine" onclick="switchTab('mine')" title="Mine" aria-label="Mine">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="8.5" r="3.7"/>
+        <path d="M5.5 19.5 c0-3.6 2.9-5.7 6.5-5.7 s6.5 2.1 6.5 5.7"/>
+      </svg>
     </button>
   </nav>
 
-  <!-- ── All Glimmers panel ──────────────────────────────────────────────── -->
+  <!-- ── All Glimmers panel — one glimmer at a time ──────────────────────── -->
   <div class="tab-panel active" id="panelAll">
-    <div id="allFeedWrap">
-      <div id="allFeed">
-        <div class="empty"><div class="icon">✦</div><p>Loading glimmers...</p></div>
+    <div class="solo-controls">
+      <div class="order-toggle" role="group" aria-label="Feed order">
+        <button class="order-btn active" id="orderRecent" onclick="setFeedMode('recent')"
+          title="Most recent first" aria-label="Most recent first">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="8.5"/>
+            <path d="M12 7 v5.2 l3.4 2"/>
+          </svg>
+        </button>
+        <button class="order-btn" id="orderShuffle" onclick="setFeedMode('shuffle')"
+          title="Shuffle" aria-label="Shuffle">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <polyline points="15 4 20 4 20 9"/>
+            <path d="M4 20 L20 4"/>
+            <polyline points="20 15 20 20 15 20"/>
+            <path d="M14.5 14.5 L20 20"/>
+            <path d="M4 4 L9.5 9.5"/>
+          </svg>
+        </button>
       </div>
-      <div class="feed-sentinel" id="feedSentinel"></div>
+    </div>
+    <div class="solo-stage" id="allStage">
+      <div class="empty"><div class="icon">✦</div><p>Loading glimmers...</p></div>
+    </div>
+  </div>
+
+  <!-- ── Saved panel ─────────────────────────────────────────────────────── -->
+  <div class="tab-panel" id="panelSaved">
+    <div id="savedFeed">
+      <div class="empty"><div class="icon">✦</div><p>Loading saved glimmers...</p></div>
     </div>
   </div>
 
@@ -652,9 +1056,8 @@
       <div class="empty"><div class="icon">✦</div><p>Loading your glimmers...</p></div>
     </div>
   </div>
-</div>
 
-<div class="fade-bottom"></div>
+</div>
 
 <!-- ── Floating compose button: white glimmer star with a pencil tipping its ──
      centre. The pencil "knocks out" the star stroke it crosses (an amber gap)
@@ -691,6 +1094,15 @@
       </div>
       <span class="prompt-label">My glimmer of the day was...</span>
       <textarea id="glimmerInput" placeholder="a stranger held the door open and smiled at me" maxlength="180" oninput="onInput()" rows="3"></textarea>
+      <div class="location-row">
+        <button type="button" class="location-toggle" id="locationToggle" onclick="toggleLocation()" aria-pressed="false">
+          <svg class="loc-icon" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M12 21.5s-6.6-5.3-6.6-10.6a6.6 6.6 0 0 1 13.2 0c0 5.3-6.6 10.6-6.6 10.6Z"/>
+            <circle cx="12" cy="10.6" r="2.4"/>
+          </svg>
+          <span id="locationLabel">Add my city</span>
+        </button>
+      </div>
       <div class="compose-footer">
         <span class="char-count" id="charCount">180 left</span>
         <button class="submit-btn" id="submitBtn" onclick="submitGlimmer()" disabled>
@@ -712,7 +1124,32 @@
   </div>
 </div>
 
+<!-- ── Glimmer shared success modal ──────────────────────────────────────────── -->
+<div class="modal-overlay" id="successModal">
+  <div class="success-modal">
+    <svg class="success-check" viewBox="0 0 92 92" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+      <circle class="ring" cx="46" cy="46" r="40" />
+      <path class="tick" d="M28 47 L41 60 L65 33" />
+    </svg>
+    <h3>Shared</h3>
+    <p>You just shared your glimmer with the world!</p>
+    <button class="success-ok" onclick="closeShareSuccess()">OK</button>
+  </div>
+</div>
+
 <script>
+// ─── Loading screen ──────────────────────────────────────────────────────────
+// Show for ~2s, then fade out and reveal the main screen.
+(function () {
+  const screen = document.getElementById('loading-screen');
+  if (!screen) return;
+  window.setTimeout(() => {
+    screen.classList.add('is-hidden');
+    // Remove from the DOM once the fade-out transition completes.
+    screen.addEventListener('transitionend', () => screen.remove(), { once: true });
+  }, 3000);
+})();
+
 // ─── Supabase ────────────────────────────────────────────────────────────────
 const SUPABASE_URL = 'https://wqgkdcdmfguehhfdefzm.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndxZ2tkY2RtZmd1ZWhoZmRlZnptIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA1OTAxMTIsImV4cCI6MjA5NjE2NjExMn0.N-oE6wf7ZkMi4hRMkR4-GAvqSA7nJ1KKabm3FYaOGOY';
@@ -816,6 +1253,16 @@ function markHearted(id) {
   localStorage.setItem('glimmer_hearted', JSON.stringify([...ids]));
 }
 
+// ─── Saved (bookmarked) glimmers — private, per-browser like hearts ───────────
+function getSavedIds() {
+  try { return new Set(JSON.parse(localStorage.getItem('glimmer_saved') || '[]')); }
+  catch { return new Set(); }
+}
+function setSavedIds(ids) {
+  localStorage.setItem('glimmer_saved', JSON.stringify([...ids]));
+}
+function isSaved(id) { return getSavedIds().has(id); }
+
 // ─── Input ───────────────────────────────────────────────────────────────────
 function onInput() {
   const val = document.getElementById('glimmerInput').value;
@@ -840,12 +1287,52 @@ function openCompose() {
     showToast('You\'ve already shared your glimmer today ✦');
     return;
   }
+  resetLocation();
   document.getElementById('composeOverlay').classList.add('open');
   setTimeout(() => document.getElementById('glimmerInput').focus(), 60);
 }
 
 function closeCompose() {
   document.getElementById('composeOverlay').classList.remove('open');
+}
+
+// ─── Optional city share (opt-in, IP-based, coarse) ──────────────────────────
+let composeCity = null;
+
+function resetLocation() {
+  composeCity = null;
+  const btn = document.getElementById('locationToggle');
+  const label = document.getElementById('locationLabel');
+  if (btn) { btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); btn.disabled = false; }
+  if (label) label.textContent = 'Add my city';
+}
+
+async function toggleLocation() {
+  const btn = document.getElementById('locationToggle');
+  const label = document.getElementById('locationLabel');
+
+  if (btn.classList.contains('active')) { resetLocation(); return; }
+
+  // Look up the city from the request IP — no GPS prompt, naturally coarse.
+  label.textContent = 'Locating…';
+  btn.disabled = true;
+  try {
+    const res = await fetch('https://ipapi.co/json/');
+    if (!res.ok) throw new Error('lookup failed');
+    const data = await res.json();
+    const city = (data && data.city ? String(data.city) : '').trim();
+    if (!city) throw new Error('no city');
+    composeCity = city;
+    btn.classList.add('active');
+    btn.setAttribute('aria-pressed', 'true');
+    label.textContent = city;
+  } catch (e) {
+    composeCity = null;
+    label.textContent = "Couldn't find your city";
+    setTimeout(() => { if (!btn.classList.contains('active')) label.textContent = 'Add my city'; }, 2500);
+  } finally {
+    btn.disabled = false;
+  }
 }
 
 // Reflect the "already shared today" state on the floating button.
@@ -871,6 +1358,7 @@ async function submitGlimmer() {
   const btn = document.getElementById('submitBtn');
   btn.disabled = true;
 
+  const city = composeCity; // capture the opt-in city before the modal resets
   const newPost = { username: myUsername, text, hearts: 0 };
 
   // The feed is always visible now; make sure we're on the All tab so the
@@ -883,9 +1371,11 @@ async function submitGlimmer() {
   closeCompose();
 
   flyCard(newPost, async () => {
+    const payload = { username: myUsername, text, session_id: SESSION_ID };
+    if (city) payload.city = city;
     const { data, error } = await db
       .from('glimmers')
-      .insert([{ username: myUsername, text, session_id: SESSION_ID }])
+      .insert([payload])
       .select()
       .single();
 
@@ -897,8 +1387,13 @@ async function submitGlimmer() {
 
     input.value = '';
     onInput();
-    showToast('Your glimmer is out in the world ✦');
-    // Real-time will add the card to the All feed; mirror it into My Glimmers too.
+    showShareSuccess();
+    // Surface the new glimmer as the focused card in the All feed...
+    if (addPostToAll(data, { front: true })) {
+      const i = allSeq.findIndex(p => p.id === data.id);
+      if (i !== -1) { allCursor = i; renderSolo(); }
+    }
+    // ...and mirror it into the My Glimmers list.
     insertIntoFeed(data, document.getElementById('myFeed'));
   }, startRect);
 }
@@ -916,7 +1411,7 @@ function flyCard(post, onComplete, startRect) {
   `;
   document.body.appendChild(flying);
 
-  const feedEl = document.getElementById('allFeed');
+  const feedEl = document.getElementById('allStage');
   const feedRect = feedEl.getBoundingClientRect();
   const dy = feedRect.top - rect.top;
 
@@ -939,11 +1434,12 @@ async function heartGlimmer(id, btn) {
   const hearted = getHeartedIds();
   if (hearted.has(id)) return;
 
-  // Optimistic UI update
+  // Optimistic UI update. The count only exists on the author's own view; for
+  // everyone else there's no number to bump (counts are private to the poster).
   btn.classList.add('hearted');
   btn.querySelector('.heart-icon').textContent = '♥';
   const countEl = btn.querySelector('.heart-count');
-  countEl.textContent = parseInt(countEl.textContent) + 1;
+  if (countEl) countEl.textContent = parseInt(countEl.textContent) + 1;
   btn.disabled = true;
   markHearted(id);
 
@@ -957,7 +1453,7 @@ async function heartGlimmer(id, btn) {
     // anything else, revert
     btn.classList.remove('hearted');
     btn.querySelector('.heart-icon').textContent = '♡';
-    countEl.textContent = parseInt(countEl.textContent) - 1;
+    if (countEl) countEl.textContent = parseInt(countEl.textContent) - 1;
     btn.disabled = false;
     return;
   }
@@ -969,6 +1465,33 @@ async function heartGlimmer(id, btn) {
     btn.getBoundingClientRect().left + btn.getBoundingClientRect().width / 2,
     btn.getBoundingClientRect().top + btn.getBoundingClientRect().height / 2
   );
+}
+
+// ─── Save / unsave (bookmark) ─────────────────────────────────────────────────
+function toggleSave(id, btn) {
+  const ids = getSavedIds();
+  const nowSaved = !ids.has(id);
+  if (nowSaved) ids.add(id); else ids.delete(id);
+  setSavedIds(ids);
+
+  // A glimmer can appear in the All, Saved, and Mine feeds at once — mirror the
+  // new state onto every card that represents it.
+  document.querySelectorAll(`.save-btn[data-id="${id}"]`).forEach(b => {
+    b.classList.toggle('saved', nowSaved);
+    b.setAttribute('aria-pressed', String(nowSaved));
+  });
+
+  // If we just unsaved from within the Saved tab, drop the card from that feed.
+  if (!nowSaved && activeTab === 'saved') {
+    const savedFeed = document.getElementById('savedFeed');
+    const card = savedFeed.querySelector(`.glimmer-card[data-id="${id}"]`);
+    if (card) {
+      const group = card.closest('.day-group');
+      card.remove();
+      if (group && !group.querySelector('.glimmer-card')) group.remove();
+      if (!savedFeed.querySelector('.glimmer-card')) savedFeed.innerHTML = savedEmptyState();
+    }
+  }
 }
 
 // ─── Comments ────────────────────────────────────────────────────────────────
@@ -1140,8 +1663,9 @@ async function deleteGlimmer(id, btn) {
     console.error('Delete error:', error);
     return;
   }
-  // Remove the card from every feed it appears in (All + My Glimmers).
-  document.querySelectorAll(`[data-id="${id}"]`).forEach(card => {
+  // Drop it from the solo All feed (in-memory) and the My Glimmers list.
+  removePostFromAll(id);
+  document.querySelectorAll(`#myFeed .glimmer-card[data-id="${id}"], #savedFeed .glimmer-card[data-id="${id}"]`).forEach(card => {
     card.style.transition = 'opacity 0.3s, transform 0.3s';
     card.style.opacity = '0';
     card.style.transform = 'scale(0.97)';
@@ -1153,16 +1677,47 @@ async function deleteGlimmer(id, btn) {
   showToast('Glimmer deleted.');
 }
 
-// If a feed has no cards left after a delete, restore its empty state.
-function refreshEmptyStates() {
-  const allFeed = document.getElementById('allFeed');
-  if (!allFeed.querySelector('.glimmer-card') && !allFeed.querySelector('.empty')) {
-    allFeed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>No glimmers yet. Share the first one.</p></div>`;
+// Remove a glimmer from the solo All feed's in-memory sequence and re-render.
+function removePostFromAll(id) {
+  const wasCurrent = allSeq[allCursor] && allSeq[allCursor].id === id;
+  allPosts = allPosts.filter(p => p.id !== id);
+  allSeq = allSeq.filter(p => p.id !== id);
+  if (!allSeq.length) {
+    document.getElementById('allStage').innerHTML =
+      `<div class="empty"><div class="icon">✦</div><p>No glimmers yet.</p></div>`;
+    document.getElementById('soloNav').hidden = true;
+    document.getElementById('soloCounter').textContent = '';
+    return;
   }
+  if (allCursor >= allSeq.length) allCursor = allSeq.length - 1;
+  if (wasCurrent) renderSolo(); else updateSoloChrome();
+}
+
+// If a list feed has no cards left after a delete, restore its empty state.
+function refreshEmptyStates() {
   const myFeed = document.getElementById('myFeed');
   if (!myFeed.querySelector('.glimmer-card') && !myFeed.querySelector('.empty')) {
     myFeed.innerHTML = myEmptyState();
   }
+  const savedFeed = document.getElementById('savedFeed');
+  if (savedFeed && !savedFeed.querySelector('.glimmer-card') && !savedFeed.querySelector('.empty')) {
+    savedFeed.innerHTML = savedEmptyState();
+  }
+}
+
+// ─── Glimmer shared success modal ────────────────────────────────────────────
+function showShareSuccess() {
+  const m = document.getElementById('successModal');
+  // Re-trigger the draw-in animation each time by reflowing the animated paths.
+  m.querySelectorAll('.success-check .ring, .success-check .tick').forEach(el => {
+    el.style.animation = 'none';
+    void el.getBoundingClientRect();
+    el.style.animation = '';
+  });
+  m.classList.add('open');
+}
+function closeShareSuccess() {
+  document.getElementById('successModal').classList.remove('open');
 }
 
 // ─── Toast ───────────────────────────────────────────────────────────────────
@@ -1220,6 +1775,10 @@ function setEnteredToday() { localStorage.setItem(enteredKeyName(), '1'); }
 
 function buildCard(post, animate) {
   const hearted = getHeartedIds().has(post.id);
+  const saved = getSavedIds().has(post.id);
+  // Communitarian, not performative: interaction counts are private to the
+  // glimmer's author. Everyone else sees the actions without any numbers.
+  const isOwn = post.session_id === SESSION_ID;
   const card = document.createElement('div');
   card.className = 'glimmer-card';
   card.dataset.id = post.id;
@@ -1229,20 +1788,29 @@ function buildCard(post, animate) {
       <div class="card-avatar" style="background:${getAvatarColor(post.username)}">${getAvatarEmoji(post.username)}</div>
       <div class="card-meta">
         <div class="card-username">${escapeHtml(post.username)}</div>
-        <div class="card-date">${formatDate(post.created_at)}</div>
+        <div class="card-date">${formatDate(post.created_at)}${post.city ? ` · ${escapeHtml(post.city)}` : ''}</div>
       </div>
     </div>
+    <div class="card-prompt">My glimmer of the day was…</div>
     <div class="card-text">${escapeHtml(post.text)}</div>
     <div class="card-actions">
       <button class="heart-btn ${hearted ? 'hearted' : ''}"
         onclick="heartGlimmer('${post.id}', this)"
         ${hearted ? 'disabled' : ''}>
         <span class="heart-icon">${hearted ? '♥' : '♡'}</span>
-        <span class="heart-count">${post.hearts || 0}</span>
+        ${isOwn ? `<span class="heart-count">${post.hearts || 0}</span>` : ''}
       </button>
       <button class="comment-btn" onclick="toggleComments('${post.id}', this)" title="Comment on this glimmer">
-        <span class="comment-icon">💬</span>
-        <span class="comment-count">${post.comments || 0}</span>
+        <svg class="comment-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M4 4h12a1.5 1.5 0 0 1 1.5 1.5v7A1.5 1.5 0 0 1 16 14H8l-3.5 3v-3H4a1.5 1.5 0 0 1-1.5-1.5v-7A1.5 1.5 0 0 1 4 4Z"/>
+        </svg>
+        ${isOwn ? `<span class="comment-count">${post.comments || 0}</span>` : ''}
+      </button>
+      <button class="save-btn ${saved ? 'saved' : ''}" data-id="${post.id}"
+        onclick="toggleSave('${post.id}', this)" title="Save this glimmer" aria-pressed="${saved}">
+        <svg class="save-icon" viewBox="0 0 20 20" aria-hidden="true">
+          <path d="M5.5 3.5h9a1 1 0 0 1 1 1v12l-5.5-3.2L4.5 16.5v-12a1 1 0 0 1 1-1Z"/>
+        </svg>
       </button>
       ${post.session_id === SESSION_ID
         ? `<button class="delete-btn" onclick="deleteGlimmer('${post.id}', this)" title="Delete your glimmer">✕</button>`
@@ -1261,42 +1829,17 @@ function buildCard(post, animate) {
   return card;
 }
 
-// ─── Grouped rendering (feed-scoped) ──────────────────────────────────────────
-// Day sections are scoped to their feed container via [data-key]; the same
-// helper drives both the All Glimmers and My Glimmers feeds.
-function makeDaySection(key, ts) {
-  const isToday = key === todayKey();
-  const section = document.createElement('section');
-  section.className = 'day-group';
-  section.dataset.key = key;
-  section.dataset.ts = ts;
-
-  const heading = document.createElement('h2');
-  heading.className = 'day-heading';
-  heading.innerHTML = escapeHtml(formatDayLabel(ts)) +
-    (isToday ? ' <span class="today-tag">· Today</span>' : '');
-  section.appendChild(heading);
-
-  const cards = document.createElement('div');
-  cards.className = 'day-cards';
-  section.appendChild(cards);
-  return section;
-}
-
-// Append a glimmer to the bottom of a feed (older posts / pagination).
+// ─── Flat list rendering (Saved + Mine feeds) ─────────────────────────────────
+// These feeds show glimmer cards in plain reverse-chronological order — no day
+// headers — matching the pared-back design. The source queries already sort
+// descending, so we simply append in fetch order.
 function appendPost(post, animate, feedEl) {
-  const key = dayKeyLocal(post.created_at);
-  let section = feedEl.querySelector(`.day-group[data-key="${key}"]`);
-  if (!section) {
-    section = makeDaySection(key, post.created_at);
-    feedEl.appendChild(section);
-  }
   const card = buildCard(post, animate);
-  section.querySelector('.day-cards').appendChild(card);
+  feedEl.appendChild(card);
   return card;
 }
 
-// Insert a single glimmer at the very top of a feed (real-time / own submit).
+// Insert a single glimmer at the very top of a list feed (real-time / own submit).
 function insertIntoFeed(post, feedEl) {
   if (post.reported) return;
   if (feedEl.querySelector(`[data-id="${post.id}"]`)) return; // de-dupe
@@ -1304,17 +1847,8 @@ function insertIntoFeed(post, feedEl) {
   const empty = feedEl.querySelector('.empty');
   if (empty) empty.remove();
 
-  const key = dayKeyLocal(post.created_at);
-  let section = feedEl.querySelector(`.day-group[data-key="${key}"]`);
-
-  if (!section) {
-    // New day at the top of the feed (e.g. first glimmer of today).
-    section = makeDaySection(key, post.created_at);
-    feedEl.insertBefore(section, feedEl.firstChild);
-  }
-  const cards = section.querySelector('.day-cards');
   const card = buildCard(post, true);
-  cards.insertBefore(card, cards.firstChild);
+  feedEl.insertBefore(card, feedEl.firstChild);
   sparkleCard(card);
 }
 
@@ -1326,12 +1860,20 @@ function sparkleCard(card) {
   }, 400);
 }
 
-// ─── All Glimmers feed: loading + infinite scroll ─────────────────────────────
+// ─── All Glimmers feed: one glimmer at a time ─────────────────────────────────
+// The feed shows a single glimmer to keep focus on one moment. Users page
+// through it with the arrows / swipe / arrow-keys, in either reverse-chronological
+// ("recent") or random ("shuffle") order. Posts are fetched a page at a time into
+// `allPosts`; `allSeq` is the display order; `allCursor` is the visible position.
 const PAGE_SIZE = 30;
 let feedOffset = 0;
 let feedExhausted = false;
 let feedLoading = false;
-let feedObserver = null;
+
+let allPosts = [];        // canonical fetched list (reverse-chronological)
+let allSeq = [];          // posts in current display order
+let allCursor = 0;        // index into allSeq currently shown
+let feedMode = 'recent';  // 'recent' | 'shuffle'
 
 async function fetchPage(from) {
   const { data, error } = await db
@@ -1344,56 +1886,261 @@ async function fetchPage(from) {
   return data || [];
 }
 
-// Full (re)load of the live All Glimmers feed — resets pagination state.
+function shuffled(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+// Rebuild the display sequence from allPosts for the current mode.
+function rebuildSeq() {
+  allSeq = feedMode === 'shuffle' ? shuffled(allPosts) : allPosts.slice();
+}
+
+// Full (re)load of the live All Glimmers feed — resets pagination + position.
 async function loadAllGlimmers() {
-  const feed = document.getElementById('allFeed');
-  feed.innerHTML = '';
+  const stage = document.getElementById('allStage');
   feedOffset = 0;
   feedExhausted = false;
   feedLoading = true;
+  allPosts = [];
 
   const posts = await fetchPage(0);
   feedLoading = false;
 
   if (posts === null) {
-    feed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>Couldn't load glimmers. Try refreshing.</p></div>`;
+    stage.innerHTML = `<div class="empty"><div class="icon">✦</div><p>Couldn't load glimmers. Try refreshing.</p></div>`;
+    document.getElementById('soloNav').hidden = true;
     return;
   }
   if (posts.length === 0) {
-    feed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>No glimmers yet.</p></div>`;
+    stage.innerHTML = `<div class="empty"><div class="icon">✦</div><p>No glimmers yet.</p></div>`;
+    document.getElementById('soloCounter').textContent = '';
+    document.getElementById('soloNav').hidden = true;
     feedExhausted = true;
     return;
   }
 
-  posts.forEach(p => appendPost(p, false, feed));
+  allPosts = posts;
   feedOffset = posts.length;
   if (posts.length < PAGE_SIZE) feedExhausted = true;
-  observeSentinel();
+  rebuildSeq();
+  allCursor = 0;
+  renderSolo();
 }
 
-// Load the next page of older glimmers, appending to the bottom of the All feed.
-async function loadMore() {
+// Fetch one more page of older posts and fold it into the live sequence.
+async function loadMorePosts() {
   if (feedExhausted || feedLoading) return;
-  if (activeTab !== 'all') return;
   feedLoading = true;
   const posts = await fetchPage(feedOffset);
   feedLoading = false;
   if (!posts || posts.length === 0) { feedExhausted = true; return; }
-  const feed = document.getElementById('allFeed');
-  posts.forEach(p => appendPost(p, false, feed));
+
+  const currentId = allSeq[allCursor] && allSeq[allCursor].id;
+  posts.forEach(p => { if (!allPosts.some(x => x.id === p.id)) allPosts.push(p); });
   feedOffset += posts.length;
   if (posts.length < PAGE_SIZE) feedExhausted = true;
+
+  // Extend the display sequence without disturbing the viewed card.
+  if (feedMode === 'shuffle') {
+    allSeq = allSeq.concat(shuffled(posts));
+  } else {
+    allSeq = allPosts.slice();
+  }
+  if (currentId) {
+    const i = allSeq.findIndex(p => p.id === currentId);
+    if (i !== -1) allCursor = i;
+  }
+  updateSoloChrome();
 }
 
-// Trigger loadMore when the sentinel near the bottom scrolls into view.
-function observeSentinel() {
-  const sentinel = document.getElementById('feedSentinel');
-  if (!sentinel) return;
-  if (feedObserver) feedObserver.disconnect();
-  feedObserver = new IntersectionObserver((entries) => {
-    if (entries.some(e => e.isIntersecting)) loadMore();
-  }, { rootMargin: '400px' });
-  feedObserver.observe(sentinel);
+// Build the deck scaffold (two decorative cards behind a draggable top card)
+// once, and wire up drag gestures on the top card.
+function ensureDeck() {
+  const stage = document.getElementById('allStage');
+  if (stage.querySelector('.deck')) return;
+  stage.innerHTML =
+    `<div class="deck" id="deck">
+       <div class="deck-back deck-back-2"></div>
+       <div class="deck-back deck-back-1"></div>
+       <div class="deck-top" id="deckTop"></div>
+     </div>`;
+  attachDeckDrag(document.getElementById('deckTop'));
+}
+
+// Render the card at allCursor onto the top of the deck, promoting it forward
+// (as if the next card in the stack rose to the front).
+function renderSolo() {
+  ensureDeck();
+  const post = allSeq[allCursor];
+  if (!post) return;
+  const top = document.getElementById('deckTop');
+  top.style.transition = 'none';
+  top.style.transform = '';
+  top.style.opacity = '1';
+  const card = buildCard(post, false);
+  card.style.animation = 'deckPromote 0.3s cubic-bezier(0.4,0,0.2,1) both';
+  top.innerHTML = '';
+  top.appendChild(card);
+  updateSoloChrome();
+}
+
+// Sync the "more underneath" stack cue with the current position.
+function updateSoloChrome() {
+  const deck = document.getElementById('deck');
+  if (!allSeq.length) return;
+  // Hide the peeking back-cards once there's nothing left under the top card.
+  const isLast = feedExhausted && allCursor >= allSeq.length - 1;
+  if (deck) deck.classList.toggle('is-last', isLast);
+}
+
+function soloNext() {
+  if (allCursor < allSeq.length - 1) {
+    allCursor++;
+    renderSolo();
+  }
+  // Prefetch as we near the end of what's loaded.
+  if (!feedExhausted && allCursor >= allSeq.length - 3) loadMorePosts();
+}
+
+function soloPrev() {
+  if (allCursor > 0) {
+    allCursor--;
+    renderSolo();
+  }
+}
+
+// Drag-to-browse: fling the top card off-screen to advance, snap back otherwise.
+function attachDeckDrag(top) {
+  let startX = 0, startY = 0, dx = 0, dir = null, active = false;
+  const THRESH = 90;
+
+  top.addEventListener('pointerdown', e => {
+    // Don't hijack taps on the heart/comment/save/report controls or the textarea.
+    if (e.target.closest('button, textarea, a')) return;
+    active = true; dir = null; dx = 0;
+    startX = e.clientX; startY = e.clientY;
+    top.style.transition = 'none';
+    try { top.setPointerCapture(e.pointerId); } catch (_) {}
+  });
+
+  top.addEventListener('pointermove', e => {
+    if (!active) return;
+    const mx = e.clientX - startX, my = e.clientY - startY;
+    if (dir === null && (Math.abs(mx) > 6 || Math.abs(my) > 6)) {
+      dir = Math.abs(mx) > Math.abs(my) ? 'h' : 'v';
+    }
+    if (dir !== 'h') return; // vertical → let the page scroll
+    dx = mx;
+    top.style.transform = `translateX(${dx}px) rotate(${dx / 22}deg)`;
+  });
+
+  function release() {
+    if (!active) return;
+    active = false;
+    top.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s';
+    if (dir === 'h' && Math.abs(dx) > THRESH) {
+      const goNext = dx < 0;
+      const canGo = goNext ? allCursor < allSeq.length - 1 : allCursor > 0;
+      if (canGo) {
+        const off = goNext ? -1 : 1;
+        top.style.transform = `translateX(${off * 140}%) rotate(${off * 14}deg)`;
+        top.style.opacity = '0';
+        setTimeout(() => { goNext ? soloNext() : soloPrev(); }, 230);
+        return;
+      }
+    }
+    top.style.transform = 'translateX(0) rotate(0)'; // snap back
+  }
+  top.addEventListener('pointerup', release);
+  top.addEventListener('pointercancel', release);
+}
+
+// Toggle reverse-chronological vs random order; restart from the first card.
+function setFeedMode(mode) {
+  if (mode === feedMode) return;
+  feedMode = mode;
+  document.getElementById('orderRecent').classList.toggle('active', mode === 'recent');
+  document.getElementById('orderShuffle').classList.toggle('active', mode === 'shuffle');
+  if (!allPosts.length) return;
+  rebuildSeq();
+  allCursor = 0;
+  renderSolo();
+}
+
+// Add a glimmer arriving via real-time / own submit into the live sequence
+// without disturbing the card the user is currently reading.
+function addPostToAll(post, { front = false } = {}) {
+  if (post.reported) return false;
+  if (allPosts.some(p => p.id === post.id)) return false;
+
+  const currentId = allSeq[allCursor] && allSeq[allCursor].id;
+  if (front) allPosts.unshift(post); else allPosts.push(post);
+
+  if (feedMode === 'recent') {
+    allSeq = allPosts.slice();
+  } else {
+    // Drop it somewhere still ahead of the reader so it's reachable later.
+    const at = Math.min(allSeq.length, allCursor + 1 + Math.floor(Math.random() * 4));
+    allSeq.splice(at, 0, post);
+  }
+  if (currentId) {
+    const i = allSeq.findIndex(p => p.id === currentId);
+    if (i !== -1) allCursor = i;
+  }
+  // If the stage was empty (first glimmer ever), show it now.
+  if (!document.querySelector('#allStage .glimmer-card')) {
+    feedExhausted = false;
+    allCursor = front ? 0 : allCursor;
+    renderSolo();
+  } else {
+    updateSoloChrome();
+  }
+  return true;
+}
+
+// Keyboard navigation for the deck (drag/swipe is handled per-card in attachDeckDrag).
+document.addEventListener('keydown', e => {
+  if (activeTab !== 'all') return;
+  const tag = (document.activeElement && document.activeElement.tagName) || '';
+  if (tag === 'TEXTAREA' || tag === 'INPUT') return;
+  if (e.key === 'ArrowRight') { soloNext(); }
+  else if (e.key === 'ArrowLeft') { soloPrev(); }
+});
+
+// ─── Saved feed ───────────────────────────────────────────────────────────────
+function savedEmptyState() {
+  return `<div class="empty"><div class="icon">✦</div><p>No saved glimmers yet. Tap the bookmark on any glimmer to keep it here.</p></div>`;
+}
+
+async function loadSavedGlimmers() {
+  const feed = document.getElementById('savedFeed');
+  const ids = [...getSavedIds()];
+  if (ids.length === 0) {
+    feed.innerHTML = savedEmptyState();
+    return;
+  }
+
+  feed.innerHTML = `<div class="empty"><div class="icon">✦</div><p>Loading saved glimmers...</p></div>`;
+
+  const { data, error } = await db
+    .from('glimmers')
+    .select('*')
+    .in('id', ids)
+    .eq('reported', false)
+    .order('created_at', { ascending: false });
+
+  if (error || !data || data.length === 0) {
+    feed.innerHTML = savedEmptyState();
+    return;
+  }
+
+  feed.innerHTML = '';
+  data.forEach(p => appendPost(p, false, feed));
 }
 
 // ─── My Glimmers feed ─────────────────────────────────────────────────────────
@@ -1433,9 +2180,9 @@ function subscribeToGlimmers() {
       schema: 'public',
       table: 'glimmers'
     }, (payload) => {
-      // Stream into the live All Glimmers feed (it's always the source of truth,
-      // even while blurred). Own posts also get mirrored into My Glimmers.
-      insertIntoFeed(payload.new, document.getElementById('allFeed'));
+      // Fold new glimmers into the solo All sequence (without disturbing the
+      // card being read). Own posts also get mirrored into My Glimmers.
+      addPostToAll(payload.new, { front: true });
       if (payload.new.session_id === SESSION_ID && myGlimmersLoaded) {
         insertIntoFeed(payload.new, document.getElementById('myFeed'));
       }
@@ -1447,7 +2194,7 @@ function subscribeToGlimmers() {
     }, (payload) => {
       // Update heart/comment counts on every card for this glimmer (it may live
       // in both the All and My feeds) without re-rendering.
-      document.querySelectorAll(`[data-id="${payload.new.id}"]`).forEach(card => {
+      document.querySelectorAll(`.glimmer-card[data-id="${payload.new.id}"]`).forEach(card => {
         const countEl = card.querySelector('.heart-count');
         if (countEl) countEl.textContent = payload.new.hearts;
         const commentEl = card.querySelector('.comment-count');
@@ -1460,21 +2207,27 @@ function subscribeToGlimmers() {
 // ─── Tabs ─────────────────────────────────────────────────────────────────────
 let activeTab = 'all';
 
+const TABS = {
+  all:   { tabId: 'tabAll',   panelId: 'panelAll' },
+  saved: { tabId: 'tabSaved', panelId: 'panelSaved' },
+  mine:  { tabId: 'tabMine',  panelId: 'panelMine' },
+};
+
 function switchTab(tab, opts = {}) {
   activeTab = tab;
-  const isAll = tab === 'all';
 
-  document.getElementById('tabAll').classList.toggle('active', isAll);
-  document.getElementById('tabMine').classList.toggle('active', !isAll);
-  document.getElementById('panelAll').classList.toggle('active', isAll);
-  document.getElementById('panelMine').classList.toggle('active', !isAll);
+  for (const [name, { tabId, panelId }] of Object.entries(TABS)) {
+    const on = name === tab;
+    document.getElementById(tabId).classList.toggle('active', on);
+    document.getElementById(panelId).classList.toggle('active', on);
+  }
 
   if (!opts.silent) window.scrollTo({ top: 0, behavior: 'smooth' });
 
+  // Saved re-renders on each open (the saved set changes as cards are toggled).
+  if (tab === 'saved') loadSavedGlimmers();
   // My Glimmers is always available — load it the first time it's opened.
-  if (!isAll && !myGlimmersLoaded) {
-    loadMyGlimmers();
-  }
+  if (tab === 'mine' && !myGlimmersLoaded) loadMyGlimmers();
 }
 
 // ─── Logo → home: back to the top of All Glimmers ─────────────────────────────
