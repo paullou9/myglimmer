@@ -2138,6 +2138,30 @@ function enteredKeyName() { return 'glimmer_entered_' + todayKey(); }
 function hasEnteredToday() { return localStorage.getItem(enteredKeyName()) === '1'; }
 function setEnteredToday() { localStorage.setItem(enteredKeyName(), '1'); }
 
+// ─── Visit tracking ──────────────────────────────────────────────────────────
+// Log one lightweight row per browser per day. Distinct session_id across all
+// rows = unique visitors; rows-per-day = daily actives. Throttled with a local
+// flag so a returning-same-day visitor isn't double-counted. Fire-and-forget —
+// never blocks the feed.
+function visitedKeyName() { return 'glimmer_visited_' + todayKey(); }
+async function trackVisit() {
+  if (localStorage.getItem(visitedKeyName()) === '1') return;
+  localStorage.setItem(visitedKeyName(), '1');
+  const params = new URLSearchParams(window.location.search);
+  const { error } = await db.from('visits').insert([{
+    session_id: SESSION_ID,
+    referrer: document.referrer || null,
+    user_agent: navigator.userAgent,
+    is_pwa: window.matchMedia('(display-mode: standalone)').matches
+            || window.navigator.standalone === true,
+    utm_source: params.get('utm_source'),
+    utm_medium: params.get('utm_medium'),
+    utm_campaign: params.get('utm_campaign'),
+    landing_path: window.location.pathname + window.location.search,
+  }]);
+  if (error) console.error('visit track failed', error);
+}
+
 function buildCard(post, animate) {
   const hearted = getHeartedIds().has(post.id);
   const saved = getSavedIds().has(post.id);
@@ -2605,6 +2629,7 @@ function goHome() {
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 async function boot() {
+  trackVisit();
   subscribeToGlimmers();
   // The feed is open to everyone now — always load it.
   await loadAllGlimmers();
