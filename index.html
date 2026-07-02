@@ -171,33 +171,14 @@
 
   .loading-def {
     max-width: 460px;
-    text-align: left;
+    text-align: center;
   }
   .loading-headword {
     font-family: 'Instrument Serif', serif;
     font-size: 34px;
     font-weight: 400;
     color: #fff;
-    margin-bottom: 14px;
     letter-spacing: 0.01em;
-  }
-  .loading-headword .pos {
-    font-style: italic;
-    font-size: 26px;
-    opacity: 0.85;
-  }
-
-  .loading-body {
-    font-family: 'Times New Roman', Times, serif;
-    font-size: 22px;
-    line-height: 1.55;
-    color: #fff;
-  }
-  .loading-body .attr {
-    display: block;
-    margin-top: 14px;
-    font-style: italic;
-    opacity: 0.9;
   }
 
   /* Loading spinner — simple circular movement */
@@ -364,7 +345,8 @@
   }
   .deck {
     position: relative;
-    min-height: 200px;
+    flex: 1 1 auto;
+    min-height: 0;
   }
   /* Decorative cards peeking out behind the top one — the "more underneath" cue. */
   .deck-back {
@@ -384,12 +366,13 @@
   .deck-top {
     position: relative;
     z-index: 2;
+    height: 100%;
     cursor: grab;
     touch-action: pan-y;
     will-change: transform;
   }
   .deck-top:active { cursor: grabbing; }
-  .deck-top .glimmer-card { margin-bottom: 0; cursor: inherit; animation: none; }
+  .deck-top .glimmer-card { height: 100%; overflow-y: auto; margin-bottom: 0; cursor: inherit; animation: none; }
   .deck-top .glimmer-card:hover { transform: none; box-shadow: var(--shadow); }
   /* Interactive widgets inside the card shouldn't trigger a drag-grab cursor. */
   .deck-top button, .deck-top textarea, .deck-top a { cursor: pointer; }
@@ -400,6 +383,28 @@
     to   { opacity: 1; transform: translateY(0) scale(1); }
   }
 
+  /* ── Feed gate: sharing today's glimmer is required to see everyone else's ── */
+  .feed-gate {
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 14px;
+    padding: 20px;
+  }
+  .feed-gate-icon { font-size: 40px; color: var(--amber); }
+  .feed-gate-title { font-family: 'Instrument Serif', serif; font-weight: 400; font-size: 28px; color: var(--ink); }
+  .feed-gate-sub {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 15px;
+    line-height: 1.5;
+    color: var(--ink-light);
+    max-width: 320px;
+  }
+  .feed-gate .landing-cta-btn { align-self: center; margin-top: 8px; }
 
   /* ── Compose (now opened as a modal via the floating button) ──────────────── */
   .compose {
@@ -855,6 +860,26 @@
 
   .modal h3 { font-family: 'Instrument Serif', serif; font-size: 22px; margin-bottom: 8px; }
   .modal p { font-size: 13px; color: var(--ink-light); line-height: 1.5; margin-bottom: 20px; }
+
+  /* ── Username picker (first-run commit + later renames) ─────────────────── */
+  .username-modal { position: relative; text-align: center; max-width: 400px; }
+  .username-modal h3 { text-align: center; }
+  .picker-close { top: -14px; right: -14px; }
+  .picker-preview { display:flex; flex-direction:column; align-items:center; gap:12px; margin:8px 0 16px; }
+  .picker-avatar { width:60px; height:60px; font-size:28px; }
+  .picker-name { font-family:'DM Sans',sans-serif; font-size:19px; font-weight:500; color:var(--ink); word-break:break-word; }
+  .picker-shuffle { background:none; border:1px solid var(--border); border-radius:100px; padding:8px 18px; font-family:'DM Sans',sans-serif; font-size:13px; color:var(--ink-light); cursor:pointer; transition:all .15s; }
+  .picker-shuffle:hover { background:var(--cream); color:var(--ink); }
+  .picker-notes { text-align:left; font-size:12.5px; color:var(--ink-light); line-height:1.6; margin:18px 0 4px; }
+  ul.picker-notes { padding-left:18px; } ul.picker-notes li { margin-bottom:4px; }
+  .picker-actions { margin-top:20px; align-items:center; }
+  #usernameModal.commit-mode .picker-title-rename,
+  #usernameModal.commit-mode .picker-notes-rename,
+  #usernameModal.commit-mode .picker-close,
+  #usernameModal.commit-mode .picker-cancel,
+  #usernameModal.rename-mode .picker-title-commit,
+  #usernameModal.rename-mode .picker-sub-commit,
+  #usernameModal.rename-mode .picker-notes-commit { display: none; }
 
   /* ── Feedback modal ───────────────────────────────────────────────────────── */
   .feedback-field {
@@ -1382,7 +1407,7 @@
   }
   .landing-diff-icon svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
   .landing-diff-icon .spark { font-size: 17px; line-height: 1; }
-  .landing-diff-heading { font-family: 'Times New Roman', Times, serif; font-size: 16px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+  .landing-diff-heading { font-family: 'Instrument Serif', serif; font-size: 18px; font-weight: 400; color: var(--ink); margin-bottom: 4px; }
   .landing-diff-text { font-family: 'Times New Roman', Times, serif; font-size: 14px; font-weight: 300; line-height: 1.6; color: var(--ink-light); }
 
   /* Closing CTA — segment 5 */
@@ -1428,11 +1453,7 @@
 <div id="loading-screen">
   <div class="loading-logo"><span class="spark">✦</span></div>
   <div class="loading-def" id="loadingDef">
-    <div class="loading-headword" id="loadingHeadword">glimmer <span class="pos">noun</span></div>
-    <p class="loading-body" id="loadingBody">
-      “Glimmers are tiny moments of goodness that help us remember that regulation, safety and connection is also possible.”
-      <span class="attr">— Deb Dana</span>
-    </p>
+    <div class="loading-headword" id="loadingHeadword">One beautiful thing.<br>Every day.</div>
   </div>
   <svg class="loading-spiral" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" aria-label="Loading">
     <circle cx="25" cy="25" r="20" />
@@ -1615,21 +1636,10 @@
 
 </div>
 
-<!-- ── Floating compose button: white glimmer star with a pencil tipping its ──
-     centre. The pencil "knocks out" the star stroke it crosses (an amber gap)
-     so it reads as floating above, à la X's compose button. ─────────────────── -->
+<!-- ── Floating compose button: a simple plus ────────────────────────────────── -->
 <button class="fab" id="composeFab" onclick="openCompose()" aria-label="Share a glimmer" title="Share a glimmer">
   <svg viewBox="0 0 60 60" xmlns="http://www.w3.org/2000/svg">
-    <!-- four-pointed glimmer star, outline -->
-    <path d="M30,10.24 L35.65,24.35 L49.76,30 L35.65,35.65 L30,49.76 L24.35,35.65 L10.24,30 L24.35,24.35 Z"
-          fill="none" stroke="#FFFFFF" stroke-width="2.1" stroke-linejoin="round"/>
-    <!-- pencil: meadow knockout cuts the gap, white outline on top -->
-    <g transform="rotate(45 36.79 23.21)">
-      <path d="M34.68,13.59 L38.91,13.59 L38.91,28.94 L36.79,32.82 L34.68,28.94 Z"
-            fill="#DB9B1D" stroke="#DB9B1D" stroke-width="4.6" stroke-linejoin="round"/>
-      <path d="M34.68,13.59 L38.91,13.59 L38.91,28.94 L36.79,32.82 L34.68,28.94 Z"
-            fill="none" stroke="#FFFFFF" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"/>
-    </g>
+    <path d="M30,14 L30,46 M14,30 L46,30" fill="none" stroke="#FFFFFF" stroke-width="4" stroke-linecap="round"/>
   </svg>
 </button>
 
@@ -1643,10 +1653,10 @@
       <div class="username-row">
         <div class="avatar" id="myAvatar"></div>
         <div>
-          <div class="username-display" id="myUsernameDisplay"></div>
-          <div style="font-size:11px;color:var(--ink-light);font-weight:300;margin-top:1px;white-space:nowrap;">your anonymous name for today</div>
+          <div class="username-display" id="myUsernameDisplay" onclick="openUsernamePicker('rename')" style="cursor:pointer;"></div>
+          <div style="font-size:11px;color:var(--ink-light);font-weight:300;margin-top:1px;white-space:nowrap;">saved to this device — tap to change</div>
         </div>
-        <button class="regenerate-btn" onclick="regenerateUsername()" title="New name" aria-label="New name">↻</button>
+        <button class="regenerate-btn" onclick="openUsernamePicker('rename')" title="Change name" aria-label="Change name">↻</button>
       </div>
       <span class="prompt-label">My glimmer of the day was...</span>
       <textarea id="glimmerInput" placeholder="a stranger held the door open and smiled at me" maxlength="180" oninput="onInput()" rows="3"></textarea>
@@ -1665,6 +1675,30 @@
           <span>✦</span> Share my glimmer
         </button>
       </div>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="usernameModal">
+  <div class="modal username-modal">
+    <button class="compose-close picker-close" onclick="closeUsernamePicker()" aria-label="Close">✕</button>
+    <h3 class="picker-title-commit">Pick your name</h3>
+    <h3 class="picker-title-rename">Change your name</h3>
+    <p class="picker-sub-commit">This is how you'll show up on every glimmer you share.</p>
+    <div class="picker-preview">
+      <div class="avatar picker-avatar" id="pickerAvatar"></div>
+      <div class="picker-name" id="pickerName"></div>
+    </div>
+    <button class="picker-shuffle" onclick="shuffleCandidate()">↻ Try another</button>
+    <ul class="picker-notes picker-notes-commit">
+      <li>You can change this name anytime.</li>
+      <li>It stays the same across visits unless you change it.</li>
+      <li>Changing it updates the name on all your past glimmers too.</li>
+    </ul>
+    <p class="picker-notes picker-notes-rename">Changing your name updates it on all your past glimmers too.</p>
+    <div class="modal-actions picker-actions">
+      <button class="btn-secondary picker-cancel" onclick="closeUsernamePicker()">Cancel</button>
+      <button class="submit-btn" id="pickerCommitBtn" onclick="commitUsername()">This is me</button>
     </div>
   </div>
 </div>
@@ -1755,14 +1789,6 @@
 (function () {
   const screen = document.getElementById('loading-screen');
   if (!screen) return;
-  // Returning users already know what a glimmer is — skip the dictionary-card
-  // flavor and persist the app's own hero positioning instead.
-  if (!shouldShowLanding()) {
-    const headword = document.getElementById('loadingHeadword');
-    const body = document.getElementById('loadingBody');
-    if (headword) headword.innerHTML = 'One beautiful thing.<br>Every day.';
-    if (body) body.remove();
-  }
   window.setTimeout(() => {
     screen.classList.add('is-hidden');
     // Remove from the DOM once the fade-out transition completes.
@@ -1788,9 +1814,10 @@ function getSessionId() {
 }
 const SESSION_ID = getSessionId();
 
-// ─── Username (session-bound, resets on tab close) ───────────────────────────
-const adjectives = ['wandering','golden','quiet','morning','gentle','luminous','soft','drifting','amber','rosy','silver','tender','wild','coastal','misty','velvet','sunlit','breezy','dreamy','mossy'];
-const nouns = ['sparrow','fig','kumquat','meadow','pebble','lantern','birch','current','ember','fern','crest','willow','bloom','cedar','brook','heron','vale','clover','solstice','dune'];
+// ─── Username (persistent — commits once, then follows the visitor across
+// sessions until they change it) ──────────────────────────────────────────────
+const adjectives = ['wandering','golden','quiet','morning','gentle','luminous','soft','drifting','amber','rosy','silver','tender','wild','coastal','misty','velvet','sunlit','breezy','dreamy','mossy','hazy','autumn','wintry','summer','verdant','dusky','dawn','twilight','glowing','shimmering','whispering','falling','rising','floating','gleaming','frosted','dewy','sleepy','cozy','warm','cool','crisp','fleeting','faded','bright','pale','deep','hidden','secret','distant','humble','noble','weathered','ancient','fresh','young','still','restless','roaming','settled','woven','tangled','smooth','rugged','hollow','brimming','fragrant','fragile','sturdy','swaying','curling','trembling','blushing','beaming','murmuring','lilac','indigo','crimson','scarlet','ashen','snowy','sandy','pebbled','clouded','starlit','moonlit','sunbaked','windswept','honeyed','sugared','spiced','salted','buttery','downy','feathered','fuzzy','plush','woolen','linen','glassy','dappled','speckled','freckled','brindled','russet','ochre','sage','olive','ferny','jade','teal','slate','pearl','opal','ivory','dusty','mellow','lush','placid','serene'];
+const nouns = ['sparrow','fig','kumquat','meadow','pebble','lantern','birch','current','ember','fern','crest','willow','bloom','cedar','brook','heron','vale','clover','solstice','dune','thicket','hollow','grove','orchard','harbor','cove','lagoon','marsh','fjord','glacier','summit','ridge','canyon','prairie','tundra','oasis','delta','reef','isle','atoll','maple','aspen','spruce','alder','hazel','rowan','elm','poplar','sycamore','magnolia','jasmine','lavender','marigold','poppy','daisy','lupine','thistle','heather','bracken','reed','finch','wren','robin','swallow','plover','egret','osprey','kestrel','lark','thrush','otter','marten','badger','hare','fawn','vole','lynx','stoat','ferret','marmot','beacon','hearth','cottage','cabin','cairn','trellis','lattice','quilt','kettle','saucer','teacup','acorn','conker','chestnut','pinecone','seedling','sapling','blossom','petal','dewdrop'];
 const avatarEmojis = ['🌿','🍋','🌸','✨','🍂','🌊','🪷','🌻','🍃','🌙','🦋','🐚','🌾','🍄','🌷'];
 
 // ─── Ghost prompt (placeholder, session-bound) ───────────────────────────────
@@ -1823,10 +1850,14 @@ function applyPromptPlaceholder() {
   document.getElementById('glimmerInput').placeholder = myPrompt;
 }
 
+// adjective_adjective_noun with two *distinct* adjectives — 120×119×100 ≈ 1.4M
+// combinations, comfortably over the 1M target.
 function generateUsername() {
-  const a = adjectives[Math.floor(Math.random() * adjectives.length)];
-  const n = nouns[Math.floor(Math.random() * nouns.length)];
-  return a + '_' + n;
+  const i = Math.floor(Math.random() * adjectives.length);
+  let j = Math.floor(Math.random() * (adjectives.length - 1));
+  if (j >= i) j++; // skip i so the two adjectives never match
+  const n = Math.floor(Math.random() * nouns.length);
+  return adjectives[i] + '_' + adjectives[j] + '_' + nouns[n];
 }
 
 function getAvatarEmoji(username) {
@@ -1842,24 +1873,72 @@ function getAvatarColor(username) {
   return colors[Math.abs(hash)];
 }
 
-let myUsername = sessionStorage.getItem('glimmer_username') || generateUsername();
-sessionStorage.setItem('glimmer_username', myUsername);
+const USERNAME_KEY = 'glimmer_username';
+const USERNAME_COMMITTED_KEY = 'glimmer_username_committed';
+function hasCommittedUsername() { return localStorage.getItem(USERNAME_COMMITTED_KEY) === '1'; }
 
-function regenerateUsername() {
-  myUsername = generateUsername();
-  sessionStorage.setItem('glimmer_username', myUsername);
-  renderMyUsername();
-  showToast('New name generated ✦');
-}
+let myUsername = localStorage.getItem(USERNAME_KEY) || generateUsername();
 
 function renderMyUsername() {
   document.getElementById('myAvatar').textContent = getAvatarEmoji(myUsername);
   document.getElementById('myAvatar').style.background = getAvatarColor(myUsername);
   document.getElementById('myUsernameDisplay').textContent = myUsername;
 }
-
 renderMyUsername();
 applyPromptPlaceholder();
+
+// ─── Username picker (first-run commit + later renames) ──────────────────────
+let candidateName = myUsername;
+function renderCandidate() {
+  document.getElementById('pickerAvatar').textContent = getAvatarEmoji(candidateName);
+  document.getElementById('pickerAvatar').style.background = getAvatarColor(candidateName);
+  document.getElementById('pickerName').textContent = candidateName;
+}
+function shuffleCandidate() { candidateName = generateUsername(); renderCandidate(); }
+
+function openUsernamePicker(mode) {
+  candidateName = hasCommittedUsername() ? myUsername : generateUsername();
+  renderCandidate();
+  const overlay = document.getElementById('usernameModal');
+  overlay.classList.toggle('commit-mode', mode === 'commit');
+  overlay.classList.toggle('rename-mode', mode === 'rename');
+  document.getElementById('pickerCommitBtn').textContent = mode === 'commit' ? 'This is me' : 'Save name';
+  overlay.classList.add('open');
+}
+function closeUsernamePicker() {
+  if (!hasCommittedUsername()) return; // first-run gate can't be dismissed
+  document.getElementById('usernameModal').classList.remove('open');
+}
+
+async function commitUsername() {
+  const isRename = hasCommittedUsername();
+  if (isRename && candidateName === myUsername) {
+    document.getElementById('usernameModal').classList.remove('open'); return;
+  }
+  const btn = document.getElementById('pickerCommitBtn');
+  btn.disabled = true;
+  const ok = await claimUsername(candidateName);
+  btn.disabled = false;
+  if (!ok) { showToast('That name is taken — here\'s another ✦'); shuffleCandidate(); return; }
+  myUsername = candidateName;
+  localStorage.setItem(USERNAME_KEY, myUsername);
+  localStorage.setItem(USERNAME_COMMITTED_KEY, '1');
+  renderMyUsername();
+  document.getElementById('usernameModal').classList.remove('open');
+  showToast(isRename ? 'Your name is updated ✦' : `Welcome, ${myUsername} ✦`);
+}
+
+// Atomically claim a globally-unique name + backfill past posts, in one RPC.
+async function claimUsername(name) {
+  const { data, error } = await db.rpc('claim_username', { p_session_id: SESSION_ID, p_username: name });
+  if (error) { showToast('Couldn\'t reach the server — try again?'); return false; }
+  if (data === true) {
+    await loadAllGlimmers();
+    if (myGlimmersLoaded) await loadMyGlimmers();
+    return true;
+  }
+  return false; // taken
+}
 
 // ─── Hearted glimmers (tracked locally for UI state) ────────────────────────
 function getHeartedIds() {
@@ -2049,6 +2128,14 @@ function flyCard(post, onComplete, startRect) {
   };
 }
 
+// Once someone has engaged with the glimmer currently in view (hearted or
+// saved it), move on to the next one — mirrors what a swipe already does, so
+// browsing keeps flowing without an extra tap.
+function maybeAdvanceDeck(btn) {
+  if (!btn.closest('#allStage')) return;
+  setTimeout(soloNext, 550);
+}
+
 // ─── Heart ───────────────────────────────────────────────────────────────────
 async function heartGlimmer(id, btn) {
   const hearted = getHeartedIds();
@@ -2085,6 +2172,7 @@ async function heartGlimmer(id, btn) {
     btn.getBoundingClientRect().left + btn.getBoundingClientRect().width / 2,
     btn.getBoundingClientRect().top + btn.getBoundingClientRect().height / 2
   );
+  maybeAdvanceDeck(btn);
 }
 
 // ─── Save / unsave (bookmark) ─────────────────────────────────────────────────
@@ -2112,6 +2200,8 @@ function toggleSave(id, btn) {
       if (!savedFeed.querySelector('.glimmer-card')) savedFeed.innerHTML = savedEmptyState();
     }
   }
+
+  if (nowSaved) maybeAdvanceDeck(btn);
 }
 
 // ─── Comments ────────────────────────────────────────────────────────────────
@@ -2305,8 +2395,6 @@ function removePostFromAll(id) {
   if (!allSeq.length) {
     document.getElementById('allStage').innerHTML =
       `<div class="empty"><div class="icon">✦</div><p>No glimmers yet.</p></div>`;
-    document.getElementById('soloNav').hidden = true;
-    document.getElementById('soloCounter').textContent = '';
     return;
   }
   if (allCursor >= allSeq.length) allCursor = allSeq.length - 1;
@@ -2377,6 +2465,9 @@ function dismissLanding() {
   const el = document.getElementById('landing');
   el.classList.add('closing');
   setTimeout(() => el.classList.remove('open', 'closing'), 500);
+  // Deferred from boot() so the once-in-a-lifetime name picker doesn't stack
+  // on top of the full-screen scroll intro.
+  if (!hasCommittedUsername()) openUsernamePicker('commit');
 }
 
 function skipLandingIntro() {
@@ -2723,15 +2814,11 @@ async function loadAllGlimmers() {
   feedLoading = false;
 
   if (posts === null) {
-    stage.innerHTML = `<div class="empty"><div class="icon">✦</div><p>Couldn't load glimmers. Try refreshing.</p></div>`;
-    document.getElementById('soloNav').hidden = true;
-    return;
-  }
-  if (posts.length === 0) {
-    stage.innerHTML = `<div class="empty"><div class="icon">✦</div><p>No glimmers yet.</p></div>`;
-    document.getElementById('soloCounter').textContent = '';
-    document.getElementById('soloNav').hidden = true;
-    feedExhausted = true;
+    if (hasEnteredToday()) {
+      stage.innerHTML = `<div class="empty"><div class="icon">✦</div><p>Couldn't load glimmers. Try refreshing.</p></div>`;
+    } else {
+      renderFeedGate();
+    }
     return;
   }
 
@@ -2740,7 +2827,31 @@ async function loadAllGlimmers() {
   if (posts.length < PAGE_SIZE) feedExhausted = true;
   rebuildSeq();
   allCursor = 0;
+
+  // Sharing today's glimmer is required to see everyone else's. The page
+  // fetched above stays cached in allPosts/allSeq so unlocking is instant —
+  // see addPostToAll(), which reveals the deck the moment this user shares.
+  if (!hasEnteredToday()) { renderFeedGate(); return; }
+
+  if (posts.length === 0) {
+    stage.innerHTML = `<div class="empty"><div class="icon">✦</div><p>No glimmers yet.</p></div>`;
+    feedExhausted = true;
+    return;
+  }
   renderSolo();
+}
+
+// Sharing gate shown in place of the deck until the visitor posts today.
+function renderFeedGate() {
+  document.getElementById('allStage').innerHTML = `
+    <div class="feed-gate">
+      <div class="feed-gate-icon">✦</div>
+      <h2 class="feed-gate-title">Share to see today's glimmers.</h2>
+      <p class="feed-gate-sub">One glimmer from you unlocks everyone else's.</p>
+      <button class="landing-cta-btn" onclick="openCompose()">
+        <span>✦</span> Share your glimmer
+      </button>
+    </div>`;
 }
 
 // Fetch one more page of older posts and fold it into the live sequence.
@@ -2903,7 +3014,10 @@ function addPostToAll(post, { front = false } = {}) {
     const i = allSeq.findIndex(p => p.id === currentId);
     if (i !== -1) allCursor = i;
   }
-  // If the stage was empty (first glimmer ever), show it now.
+  // Keep new posts queued in memory while the sharing gate is up, but don't
+  // reveal the deck until this visitor has shared today.
+  if (!hasEnteredToday()) return true;
+  // If the stage was empty (first glimmer ever, or the gate just lifted), show it now.
   if (!document.querySelector('#allStage .glimmer-card')) {
     feedExhausted = false;
     allCursor = front ? 0 : allCursor;
@@ -3057,7 +3171,8 @@ async function boot() {
 
   trackVisit();
   subscribeToGlimmers();
-  // The feed is open to everyone now — always load it.
+  // Sharing a glimmer today is required to see the feed — loadAllGlimmers()
+  // renders the gate or the deck depending on hasEnteredToday().
   await loadAllGlimmers();
 
   // Determine whether today's glimmer is already shared (gates the FAB, which
@@ -3065,22 +3180,27 @@ async function boot() {
   // check in case this session shared from another tab/visit.
   if (hasEnteredToday()) {
     markFabShared();
-    return;
+  } else {
+    const midnight = new Date();
+    midnight.setHours(0, 0, 0, 0);
+    const { data } = await db
+      .from('glimmers')
+      .select('id')
+      .eq('session_id', SESSION_ID)
+      .gte('created_at', midnight.toISOString())
+      .limit(1);
+
+    if (data && data.length) {
+      setEnteredToday();
+      markFabShared();
+      await loadAllGlimmers(); // the local flag was stale — reveal the feed now
+    }
   }
 
-  const midnight = new Date();
-  midnight.setHours(0, 0, 0, 0);
-  const { data } = await db
-    .from('glimmers')
-    .select('id')
-    .eq('session_id', SESSION_ID)
-    .gte('created_at', midnight.toISOString())
-    .limit(1);
-
-  if (data && data.length) {
-    setEnteredToday();
-    markFabShared();
-  }
+  // Once-in-a-lifetime: prompt every visitor to commit to a persistent name.
+  // Brand-new visitors get it once they dismiss the scroll intro instead (see
+  // dismissLanding()), so it doesn't stack on top of that full-screen experience.
+  if (!hasCommittedUsername() && !landingActive) openUsernamePicker('commit');
 }
 
 boot();
