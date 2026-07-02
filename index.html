@@ -1171,6 +1171,255 @@
   .feed-sentinel { height: 1px; width: 100%; }
 
   /* ── Bottom fade: content dissolves into the page as you scroll ───────────── */
+
+  /* ── First-time landing experience (scroll-snap, full-screen) ─────────────── */
+  .landing {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 3500;
+    background: var(--cream);
+    overflow-y: auto;
+    overflow-x: hidden;
+    scroll-snap-type: y mandatory;
+    -webkit-overflow-scrolling: touch;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+  }
+  .landing.open { display: block; }
+  .landing.closing { opacity: 0; pointer-events: none; }
+  .landing::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+  }
+
+  .landing-topbar {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: max(24px, env(safe-area-inset-top)) clamp(20px, 7vw, 44px) 0;
+    pointer-events: none;
+  }
+  .landing-topbar .logo-mark {
+    font-family: 'Instrument Serif', serif;
+    font-size: 24px;
+    color: var(--amber);
+    pointer-events: auto;
+  }
+  .landing-skip {
+    pointer-events: auto;
+    background: none;
+    border: none;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--ink-light);
+    cursor: pointer;
+    padding: 8px;
+    letter-spacing: 0.02em;
+    transition: color 0.15s;
+  }
+  .landing-skip:hover { color: var(--ink); }
+
+  .landing-dots {
+    position: fixed;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .landing-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.25s, transform 0.25s;
+  }
+  .landing-dot.active { background: var(--amber); transform: scale(1.5); }
+
+  .landing-segment {
+    position: relative;
+    z-index: 1;
+    min-height: 100vh;
+    min-height: 100svh;
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 18px;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 110px clamp(24px, 8vw, 44px) 70px;
+  }
+
+  .landing-eyebrow {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--amber);
+  }
+
+  .landing-headline {
+    font-family: 'Instrument Serif', serif;
+    font-weight: 400;
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+    font-size: clamp(32px, 6.5vw, 46px);
+  }
+  .landing-headline--hero { font-size: clamp(38px, 8.5vw, 62px); }
+
+  .landing-lede {
+    font-family: 'Times New Roman', Times, serif;
+    font-weight: 300;
+    font-size: clamp(16px, 2.6vw, 18px);
+    line-height: 1.65;
+    color: var(--ink-light);
+    max-width: 460px;
+  }
+
+  .landing-scrollcue {
+    position: absolute;
+    bottom: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Times New Roman', Times, serif;
+    color: var(--ink-light);
+    font-size: 11px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    animation: landingBob 1.8s ease-in-out infinite;
+  }
+  .landing-scrollcue svg { width: 16px; height: 16px; stroke: currentColor; fill: none; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  @keyframes landingBob {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50% { transform: translateX(-50%) translateY(6px); }
+  }
+
+  /* Fanned demo chips — segment 2 */
+  .landing-fan {
+    position: relative;
+    height: 230px;
+    margin: 10px 0 0 8px;
+  }
+  .landing-chip {
+    position: absolute;
+    top: 0; left: 0;
+    width: min(260px, 74vw);
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    box-shadow: var(--shadow);
+    font-family: 'Times New Roman', Times, serif;
+    font-style: italic;
+    font-size: 16px;
+    line-height: 1.5;
+    color: #423C34;
+    white-space: nowrap;
+  }
+  .landing-chip:nth-child(1) { transform: rotate(-4deg); z-index: 1; }
+  .landing-chip:nth-child(2) { transform: translate(28px, 62px) rotate(2deg); z-index: 2; }
+  .landing-chip:nth-child(3) { transform: translate(56px, 124px) rotate(-3deg); z-index: 3; }
+
+  /* Mini timeline — segment 3 */
+  .landing-timeline {
+    margin-top: 4px;
+    display: flex;
+    flex-direction: column;
+  }
+  .landing-tl-row {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--border);
+  }
+  .landing-tl-row:last-child { border-bottom: none; }
+  .landing-tl-date {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--amber);
+    letter-spacing: 0.04em;
+    white-space: nowrap;
+    width: 58px;
+    flex-shrink: 0;
+  }
+  .landing-tl-text {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 15px;
+    color: var(--ink);
+    line-height: 1.4;
+  }
+
+  /* How it's different — segment 4 */
+  .landing-diff-list { display: flex; flex-direction: column; gap: 26px; margin-top: 6px; }
+  .landing-diff-item { display: flex; gap: 16px; align-items: flex-start; }
+  .landing-diff-icon {
+    flex-shrink: 0;
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    background: var(--amber-light);
+    display: flex; align-items: center; justify-content: center;
+    color: var(--amber);
+  }
+  .landing-diff-icon svg { width: 19px; height: 19px; fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+  .landing-diff-icon .spark { font-size: 17px; line-height: 1; }
+  .landing-diff-heading { font-family: 'Times New Roman', Times, serif; font-size: 16px; font-weight: 500; color: var(--ink); margin-bottom: 4px; }
+  .landing-diff-text { font-family: 'Times New Roman', Times, serif; font-size: 14px; font-weight: 300; line-height: 1.6; color: var(--ink-light); }
+
+  /* Closing CTA — segment 5 */
+  .landing-cta-sub {
+    font-family: 'Times New Roman', Times, serif;
+    font-style: italic;
+    font-size: clamp(18px, 3vw, 22px);
+    color: var(--ink-light);
+    margin-top: -10px;
+  }
+  .landing-cta-btn {
+    margin-top: 10px;
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--amber);
+    color: var(--warm-white);
+    border: none;
+    border-radius: 100px;
+    padding: 17px 30px;
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 16px;
+    font-weight: 500;
+    cursor: pointer;
+    box-shadow: var(--shadow-lift);
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .landing-cta-btn:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(28,26,23,0.32); }
+  .landing-cta-btn:active { transform: translateY(0); }
+  .landing-cta-note {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 13px;
+    font-weight: 300;
+    color: var(--ink-light);
+    margin-top: -4px;
+  }
 </style>
 </head>
 <body data-tab="all">
@@ -1178,9 +1427,9 @@
 <!-- ── Loading screen ──────────────────────────────────────────────────────── -->
 <div id="loading-screen">
   <div class="loading-logo"><span class="spark">✦</span></div>
-  <div class="loading-def">
-    <div class="loading-headword">glimmer <span class="pos">noun</span></div>
-    <p class="loading-body">
+  <div class="loading-def" id="loadingDef">
+    <div class="loading-headword" id="loadingHeadword">glimmer <span class="pos">noun</span></div>
+    <p class="loading-body" id="loadingBody">
       “Glimmers are tiny moments of goodness that help us remember that regulation, safety and connection is also possible.”
       <span class="attr">— Deb Dana</span>
     </p>
@@ -1188,6 +1437,106 @@
   <svg class="loading-spiral" viewBox="0 0 50 50" xmlns="http://www.w3.org/2000/svg" aria-label="Loading">
     <circle cx="25" cy="25" r="20" />
   </svg>
+</div>
+
+<!-- ── First-time landing experience ───────────────────────────────────────── -->
+<div class="landing" id="landing" role="dialog" aria-label="Welcome to MyGlimmer">
+  <div class="landing-topbar">
+    <span class="logo-mark">MyGlimmer</span>
+    <button class="landing-skip" onclick="skipLandingIntro()">Skip intro ↓</button>
+  </div>
+  <div class="landing-dots" aria-hidden="true">
+    <span class="landing-dot active"></span>
+    <span class="landing-dot"></span>
+    <span class="landing-dot"></span>
+    <span class="landing-dot"></span>
+    <span class="landing-dot"></span>
+  </div>
+
+  <!-- 1. Hero -->
+  <section class="landing-segment">
+    <h1 class="landing-headline landing-headline--hero">One beautiful thing.<br>Every day.</h1>
+    <p class="landing-lede">Notice something small and good, share it anonymously, and see what strangers around the world noticed today. That's the whole app.</p>
+    <div class="landing-scrollcue">
+      Scroll
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg>
+    </div>
+  </section>
+
+  <!-- 2. Value prop: sincerity without performance -->
+  <section class="landing-segment">
+    <span class="landing-eyebrow">Value 01</span>
+    <h2 class="landing-headline">Sincerity without performance.</h2>
+    <p class="landing-lede">No usernames you'd recognize, no public follower counts, no public likes to chase. When nobody's watching your profile, you can say the true, small thing: the smell of rain, your kid's terrible joke, the bus arriving on time. Strangers' glimmers hit different precisely because they have nothing to gain.</p>
+    <div class="landing-fan" aria-hidden="true">
+      <div class="landing-chip">the smell of rain</div>
+      <div class="landing-chip">your kid's terrible joke</div>
+      <div class="landing-chip">the bus arriving on time</div>
+    </div>
+  </section>
+
+  <!-- 3. Value prop: gratitude journal that builds itself -->
+  <section class="landing-segment">
+    <span class="landing-eyebrow">Value 02</span>
+    <h2 class="landing-headline">A gratitude journal that builds itself.</h2>
+    <p class="landing-lede">Every glimmer you share becomes part of your own history — a running log of the days that had something good in them (which turns out to be most of them). Save the glimmers from others that stopped you mid-scroll, and revisit them when you need proof.</p>
+    <div class="landing-timeline" aria-hidden="true">
+      <div class="landing-tl-row"><span class="landing-tl-date">Today</span><span class="landing-tl-text">a stranger held the door and smiled</span></div>
+      <div class="landing-tl-row"><span class="landing-tl-date">Tue</span><span class="landing-tl-text">found $5 in an old coat pocket</span></div>
+      <div class="landing-tl-row"><span class="landing-tl-date">Sun</span><span class="landing-tl-text">the coffee was perfect on the first try</span></div>
+    </div>
+  </section>
+
+  <!-- 4. How it's different -->
+  <section class="landing-segment">
+    <span class="landing-eyebrow">How It's Different</span>
+    <div class="landing-diff-list">
+      <div class="landing-diff-item">
+        <span class="landing-diff-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><path d="M5 12a7 7 0 0 1 12-5"/><path d="M14 4v3h3"/><path d="M19 12a7 7 0 0 1-12 5"/><path d="M10 20v-3H7"/></svg>
+        </span>
+        <div>
+          <div class="landing-diff-heading">Give to get.</div>
+          <p class="landing-diff-text">You can't lurk on My Glimmer. To see today's glimmers, you share one first. It sounds like a paywall; it's actually the point. The five seconds you spend finding your glimmer is the practice — everything after is the reward.</p>
+        </div>
+      </div>
+      <div class="landing-diff-item">
+        <span class="landing-diff-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="8.5" cy="9" r="3"/><circle cx="15.5" cy="9" r="3"/><path d="M4 19c0-3 2-5 4.5-5"/><path d="M20 19c0-3-2-5-4.5-5"/></svg>
+        </span>
+        <div>
+          <div class="landing-diff-heading">Strangers, on purpose.</div>
+          <p class="landing-diff-text">Your group chat knows you. Your Instagram followers are keeping score. Glimmers from strangers carry none of that weight — no context, no comparison, no subtext. Just evidence that ordinary people everywhere are noticing beautiful things today, and you can too.</p>
+        </div>
+      </div>
+      <div class="landing-diff-item">
+        <span class="landing-diff-icon spark" aria-hidden="true">✦</span>
+        <div>
+          <div class="landing-diff-heading">One post type.</div>
+          <p class="landing-diff-text">One per day. No stories vs. reels vs. threads. No optimal posting time. No decision fatigue. A glimmer is a sentence or two about something small and real. That constraint is what makes it a ritual instead of another feed.</p>
+        </div>
+      </div>
+      <div class="landing-diff-item">
+        <span class="landing-diff-icon" aria-hidden="true">
+          <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.5"/><path d="M8 12.3l2.6 2.6L16 9.4"/></svg>
+        </span>
+        <div>
+          <div class="landing-diff-heading">100% human.</div>
+          <p class="landing-diff-text">Every glimmer is written by a person about a moment that actually happened to them. In a feed increasingly full of generated everything, that's becoming the rarest thing online.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. Closing CTA -->
+  <section class="landing-segment" id="landingCta">
+    <h2 class="landing-headline">Today had a glimmer in it.</h2>
+    <p class="landing-cta-sub">Did you catch it?</p>
+    <button class="landing-cta-btn" onclick="startFirstGlimmer()">
+      <span>✦</span> Share your glimmer
+    </button>
+    <p class="landing-cta-note">Takes five seconds. Then you'll see what everyone else noticed today.</p>
+  </section>
 </div>
 
 <div class="page">
@@ -1395,7 +1744,7 @@
       <path class="tick" d="M28 47 L41 60 L65 33" />
     </svg>
     <h3>Shared</h3>
-    <p>You just shared your glimmer with the world!</p>
+    <p id="successMsg">You just shared your glimmer with the world!</p>
     <button class="success-ok" onclick="closeShareSuccess()">OK</button>
   </div>
 </div>
@@ -1406,6 +1755,14 @@
 (function () {
   const screen = document.getElementById('loading-screen');
   if (!screen) return;
+  // Returning users already know what a glimmer is — skip the dictionary-card
+  // flavor and persist the app's own hero positioning instead.
+  if (!shouldShowLanding()) {
+    const headword = document.getElementById('loadingHeadword');
+    const body = document.getElementById('loadingBody');
+    if (headword) headword.innerHTML = 'One beautiful thing.<br>Every day.';
+    if (body) body.remove();
+  }
   window.setTimeout(() => {
     screen.classList.add('is-hidden');
     // Remove from the DOM once the fade-out transition completes.
@@ -1971,6 +2328,12 @@ function refreshEmptyStates() {
 // ─── Glimmer shared success modal ────────────────────────────────────────────
 function showShareSuccess() {
   const m = document.getElementById('successModal');
+  const msg = document.getElementById('successMsg');
+  if (msg) {
+    msg.textContent = landingActive
+      ? 'You just shared your first glimmer. Now — see what strangers noticed today.'
+      : 'You just shared your glimmer with the world!';
+  }
   // Re-trigger the draw-in animation each time by reflowing the animated paths.
   m.querySelectorAll('.success-check .ring, .success-check .tick').forEach(el => {
     el.style.animation = 'none';
@@ -1981,6 +2344,65 @@ function showShareSuccess() {
 }
 function closeShareSuccess() {
   document.getElementById('successModal').classList.remove('open');
+  if (landingActive) dismissLanding();
+}
+
+// ─── First-time landing experience ───────────────────────────────────────────
+let landingActive = false;
+
+function landingSeenKey() { return 'glimmer_landing_seen'; }
+function setSeenLanding() { localStorage.setItem(landingSeenKey(), '1'); }
+
+// Show the landing only to genuine first-timers — anyone with pre-existing
+// local history (they shared before this shipped) is grandfathered in.
+function shouldShowLanding() {
+  if (localStorage.getItem(landingSeenKey()) === '1') return false;
+  for (let i = 0; i < localStorage.length; i++) {
+    const k = localStorage.key(i);
+    if (k && k.startsWith('glimmer_entered_')) { setSeenLanding(); return false; }
+  }
+  return true;
+}
+
+function showLanding() {
+  landingActive = true;
+  document.getElementById('landing').classList.add('open');
+  initLandingDots();
+}
+
+function dismissLanding() {
+  if (!landingActive) return;
+  landingActive = false;
+  setSeenLanding();
+  const el = document.getElementById('landing');
+  el.classList.add('closing');
+  setTimeout(() => el.classList.remove('open', 'closing'), 500);
+}
+
+function skipLandingIntro() {
+  const last = document.getElementById('landingCta');
+  if (last) last.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// The CTA opens the normal compose flow; dismissLanding() fires from
+// closeShareSuccess() once the share actually completes, revealing the feed.
+function startFirstGlimmer() {
+  openCompose();
+}
+
+function initLandingDots() {
+  const segments = document.querySelectorAll('.landing-segment');
+  const dots = document.querySelectorAll('.landing-dot');
+  const scroller = document.getElementById('landing');
+  if (!segments.length || !dots.length || !scroller) return;
+  const io = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+      const idx = [...segments].indexOf(entry.target);
+      dots.forEach((d, i) => d.classList.toggle('active', i === idx));
+    });
+  }, { root: scroller, threshold: 0.6 });
+  segments.forEach(s => io.observe(s));
 }
 
 // ─── Feedback ─────────────────────────────────────────────────────────────────
@@ -2629,6 +3051,10 @@ function goHome() {
 
 // ─── Boot ─────────────────────────────────────────────────────────────────────
 async function boot() {
+  // First-timers get the scroll-based intro before anything else; the feed
+  // still loads underneath so it's ready the moment they share and it reveals.
+  if (shouldShowLanding()) showLanding();
+
   trackVisit();
   subscribeToGlimmers();
   // The feed is open to everyone now — always load it.
