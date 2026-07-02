@@ -368,7 +368,9 @@
     z-index: 2;
     height: 100%;
     cursor: grab;
-    touch-action: pan-y;
+    /* Vertical drags are the tug-to-advance gesture now, so the browser
+       shouldn't try to natively scroll on them — attachDeckDrag() owns it. */
+    touch-action: none;
     will-change: transform;
   }
   .deck-top:active { cursor: grabbing; }
@@ -377,6 +379,9 @@
   /* Interactive widgets inside the card shouldn't trigger a drag-grab cursor. */
   .deck-top button, .deck-top textarea, .deck-top a { cursor: pointer; }
   .deck-top textarea { cursor: text; }
+  /* An open comment thread can outgrow the card — let it scroll normally
+     rather than tugging the whole card away. */
+  .deck-top .comment-thread { touch-action: pan-y; }
 
   @keyframes deckPromote {
     from { opacity: 0; transform: translateY(14px) scale(0.95); }
@@ -2157,7 +2162,7 @@ function flyCard(post, onComplete, startRect) {
 }
 
 // Once someone has engaged with the glimmer currently in view (hearted or
-// saved it), move on to the next one — mirrors what a swipe already does, so
+// saved it), move on to the next one — mirrors what a tug already does, so
 // browsing keeps flowing without an extra tap.
 function maybeAdvanceDeck(btn) {
   if (!btn.closest('#allStage')) return;
@@ -2827,9 +2832,10 @@ function sparkleCard(card) {
 
 // ─── All Glimmers feed: one glimmer at a time ─────────────────────────────────
 // The feed shows a single glimmer to keep focus on one moment. Users page
-// through it with the arrows / swipe / arrow-keys, in either reverse-chronological
-// ("recent") or random ("shuffle") order. Posts are fetched a page at a time into
-// `allPosts`; `allSeq` is the display order; `allCursor` is the visible position.
+// through it by tugging the card up/down or with the arrow keys, in either
+// reverse-chronological ("recent") or random ("shuffle") order. Posts are
+// fetched a page at a time into `allPosts`; `allSeq` is the display order;
+// `allCursor` is the visible position.
 const PAGE_SIZE = 30;
 let feedOffset = 0;
 let feedExhausted = false;
@@ -2999,47 +3005,54 @@ function soloPrev() {
   }
 }
 
-// Drag-to-browse: fling the top card off-screen to advance, snap back otherwise.
+// Tug-to-browse: drag the card up/down against rubber-band resistance —
+// crossing the commit line fires a short haptic tick and, on release,
+// advances (up) or goes back (down). Falling short snaps back to place.
 function attachDeckDrag(top) {
-  let startX = 0, startY = 0, dx = 0, dir = null, active = false;
-  const THRESH = 90;
+  let startY = 0, dy = 0, active = false, ticked = false;
+  const THRESH = 110;   // post-resistance distance needed to commit
+  const RESIST = 0.55;  // damping while dragging — makes it feel like a tug, not a flick
+
+  function buzz(pattern) { if (navigator.vibrate) navigator.vibrate(pattern); }
 
   top.addEventListener('pointerdown', e => {
-    // Don't hijack taps on the heart/comment/save/report controls or the textarea.
-    if (e.target.closest('button, textarea, a')) return;
-    active = true; dir = null; dx = 0;
-    startX = e.clientX; startY = e.clientY;
+    // Don't hijack taps on the heart/comment/save/report controls, the
+    // textarea, or an open comment thread (which may need its own scroll).
+    if (e.target.closest('button, textarea, a, .comment-thread')) return;
+    active = true; dy = 0; ticked = false;
+    startY = e.clientY;
     top.style.transition = 'none';
     try { top.setPointerCapture(e.pointerId); } catch (_) {}
   });
 
   top.addEventListener('pointermove', e => {
     if (!active) return;
-    const mx = e.clientX - startX, my = e.clientY - startY;
-    if (dir === null && (Math.abs(mx) > 6 || Math.abs(my) > 6)) {
-      dir = Math.abs(mx) > Math.abs(my) ? 'h' : 'v';
-    }
-    if (dir !== 'h') return; // vertical → let the page scroll
-    dx = mx;
-    top.style.transform = `translateX(${dx}px) rotate(${dx / 22}deg)`;
+    e.preventDefault();
+    dy = (e.clientY - startY) * RESIST;
+    const settle = 1 - Math.min(Math.abs(dy), 140) / 2400;
+    top.style.transform = `translateY(${dy}px) scale(${settle})`;
+    const past = Math.abs(dy) > THRESH;
+    if (past && !ticked) { ticked = true; buzz(9); }
+    else if (!past) ticked = false;
   });
 
   function release() {
     if (!active) return;
     active = false;
-    top.style.transition = 'transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s';
-    if (dir === 'h' && Math.abs(dx) > THRESH) {
-      const goNext = dx < 0;
+    top.style.transition = 'transform 0.32s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s';
+    if (Math.abs(dy) > THRESH) {
+      const goNext = dy < 0;
       const canGo = goNext ? allCursor < allSeq.length - 1 : allCursor > 0;
       if (canGo) {
         const off = goNext ? -1 : 1;
-        top.style.transform = `translateX(${off * 140}%) rotate(${off * 14}deg)`;
+        top.style.transform = `translateY(${off * 120}%) scale(0.94)`;
         top.style.opacity = '0';
-        setTimeout(() => { goNext ? soloNext() : soloPrev(); }, 230);
+        setTimeout(() => { goNext ? soloNext() : soloPrev(); }, 220);
         return;
       }
+      buzz([0, 10, 40, 10]); // reached the end — a firmer "nope" instead of a tick
     }
-    top.style.transform = 'translateX(0) rotate(0)'; // snap back
+    top.style.transform = 'translateY(0) scale(1)'; // snap back
   }
   top.addEventListener('pointerup', release);
   top.addEventListener('pointercancel', release);
@@ -3091,13 +3104,13 @@ function addPostToAll(post, { front = false } = {}) {
   return true;
 }
 
-// Keyboard navigation for the deck (drag/swipe is handled per-card in attachDeckDrag).
+// Keyboard navigation for the deck (tug is handled per-card in attachDeckDrag).
 document.addEventListener('keydown', e => {
   if (activeTab !== 'all') return;
   const tag = (document.activeElement && document.activeElement.tagName) || '';
   if (tag === 'TEXTAREA' || tag === 'INPUT') return;
-  if (e.key === 'ArrowRight') { soloNext(); }
-  else if (e.key === 'ArrowLeft') { soloPrev(); }
+  if (e.key === 'ArrowDown' || e.key === 'ArrowRight') { soloNext(); }
+  else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') { soloPrev(); }
 });
 
 // ─── Saved feed ───────────────────────────────────────────────────────────────
