@@ -265,61 +265,15 @@
   }
 
   /* ── Solo (one-at-a-time) All feed ────────────────────────────────────────── */
-  .solo-controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    margin-bottom: 22px;
-  }
-  .order-toggle {
-    display: inline-flex;
-    background: rgba(28,26,23,0.05);
-    border-radius: 100px;
-    padding: 3px;
-  }
-  .order-btn {
-    border: none;
-    background: none;
-    cursor: pointer;
-    line-height: 0;
-    color: var(--ink-light);
-    padding: 7px 16px;
-    border-radius: 100px;
-    transition: color 0.2s, background 0.2s, box-shadow 0.2s;
-  }
-  .order-btn svg {
-    width: 18px;
-    height: 18px;
-    fill: none;
-    stroke: currentColor;
-    stroke-width: 1.8;
-    stroke-linejoin: round;
-    stroke-linecap: round;
-    display: block;
-  }
-  .order-btn.active {
-    color: var(--ink);
-    background: var(--warm-white);
-    box-shadow: 0 1px 4px rgba(28,26,23,0.1);
-  }
-  .solo-counter {
-    font-family: 'Albert Sans', sans-serif;
-    font-size: 12px;
-    color: var(--ink-light);
-    letter-spacing: 0.02em;
-    white-space: nowrap;
-  }
-
-  /* ── Card deck (Tinder-style stack) ───────────────────────────────────────── */
-  .solo-stage { touch-action: pan-y; }
+  .solo-stage { margin-top: 22px; touch-action: pan-y; }
 
   /* ── Home (All) tab: contained to a single viewport, no page scroll ────────────
-     The single-glimmer deck should fit the visible viewport. We use 100dvh
-     (dynamic viewport height) so iOS Safari's collapsing toolbar can't push the
-     page past the screen, and lock body scroll. The stage flexes to fill the
-     space and only scrolls internally in the rare case a glimmer is very tall.
-     Saved / Mine tabs are lists and keep their normal page scroll. */
+     The feed should fit the visible viewport, scrolling internally rather than
+     the whole page. We use 100dvh (dynamic viewport height) so iOS Safari's
+     collapsing toolbar can't push the page past the screen, and lock body
+     scroll. The stage flexes to fill the space; scroll-snap centers one card
+     at a time as you scroll through it. Saved / Mine tabs are lists and keep
+     their normal page scroll. */
   body[data-tab="all"] { overflow: hidden; }
   body[data-tab="all"] .page {
     height: 100dvh;
@@ -339,54 +293,23 @@
     overflow-y: auto;
     display: flex;
     flex-direction: column;
-    /* Top-align the deck so it sits just under the controls rather than floating
-       in the vertical centre (which left a large gap above a short glimmer). */
+    /* Top-align short feeds so they sit just under the controls rather than
+       floating in the vertical centre; scroll-snap takes over once there's
+       enough content to actually scroll through. */
     justify-content: flex-start;
+    scroll-snap-type: y mandatory;
   }
-  .deck {
-    position: relative;
-    flex: 1 1 auto;
-    min-height: 0;
+  /* Regular scroll-snap carousel: every loaded post is a full, ordinary,
+     fully-interactive card. Snapping centers whichever one you've scrolled
+     to; observeFeedCards() (an IntersectionObserver) tracks that and marks
+     it .is-active — everything else fades to keep attention on one at a
+     time, while still giving a full-size glimpse of the post before/after. */
+  #allStage .glimmer-card {
+    scroll-snap-align: center;
+    opacity: 0.5;
+    transition: opacity 0.3s ease;
   }
-  /* Decorative cards peeking out behind the top one — the "more underneath" cue. */
-  .deck-back {
-    position: absolute;
-    inset: 0;
-    border-radius: 14px;
-    background: var(--warm-white);
-    border: 1px solid var(--border);
-    box-shadow: var(--shadow);
-    transform-origin: top center;
-    transition: transform 0.3s cubic-bezier(0.4,0,0.2,1), opacity 0.3s;
-  }
-  .deck-back-1 { transform: translateY(22px) scale(0.95); z-index: 1; }
-  .deck-back-2 { transform: translateY(44px) scale(0.90); z-index: 0; }
-  .deck.is-last .deck-back { opacity: 0; transform: translateY(0) scale(1); }
-
-  .deck-top {
-    position: relative;
-    z-index: 2;
-    height: 100%;
-    cursor: grab;
-    /* Vertical drags are the tug-to-advance gesture now, so the browser
-       shouldn't try to natively scroll on them — attachDeckDrag() owns it. */
-    touch-action: none;
-    will-change: transform;
-  }
-  .deck-top:active { cursor: grabbing; }
-  .deck-top .glimmer-card { height: 100%; overflow-y: auto; margin-bottom: 0; cursor: inherit; animation: none; }
-  .deck-top .glimmer-card:hover { transform: none; box-shadow: var(--shadow); }
-  /* Interactive widgets inside the card shouldn't trigger a drag-grab cursor. */
-  .deck-top button, .deck-top textarea, .deck-top a { cursor: pointer; }
-  .deck-top textarea { cursor: text; }
-  /* An open comment thread can outgrow the card — let it scroll normally
-     rather than tugging the whole card away. */
-  .deck-top .comment-thread { touch-action: pan-y; }
-
-  @keyframes deckPromote {
-    from { opacity: 0; transform: translateY(14px) scale(0.95); }
-    to   { opacity: 1; transform: translateY(0) scale(1); }
-  }
+  #allStage .glimmer-card.is-active { opacity: 1; }
 
   /* ── Feed gate: sharing today's glimmer is required to see everyone else's ── */
   .feed-gate {
@@ -635,9 +558,19 @@
     font-size: 20px;
     line-height: 1.6;
     color: #423C34; /* warm, softened ink — less hostile than near-black */
-    margin-bottom: 42px;
+    margin-bottom: 22px;
   }
 
+  /* A short, quiet rule rather than a full-width UI divider — closes out the
+     glimmer before the engagement tray, like a break on a printed page. */
+  .card-divider {
+    width: 56px;
+    height: 1px;
+    background: var(--border);
+    margin-bottom: 22px;
+  }
+
+  /* Includes the report/delete (flag) button. */
   .card-actions { display: flex; align-items: center; gap: 6px; }
 
   .heart-btn {
@@ -1621,27 +1554,6 @@
 
   <!-- ── All Glimmers panel — one glimmer at a time ──────────────────────── -->
   <div class="tab-panel active" id="panelAll">
-    <div class="solo-controls">
-      <div class="order-toggle" role="group" aria-label="Feed order">
-        <button class="order-btn active" id="orderRecent" onclick="setFeedMode('recent')"
-          title="Most recent first" aria-label="Most recent first">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <circle cx="12" cy="12" r="8.5"/>
-            <path d="M12 7 v5.2 l3.4 2"/>
-          </svg>
-        </button>
-        <button class="order-btn" id="orderShuffle" onclick="setFeedMode('shuffle')"
-          title="Shuffle" aria-label="Shuffle">
-          <svg viewBox="0 0 24 24" aria-hidden="true">
-            <polyline points="15 4 20 4 20 9"/>
-            <path d="M4 20 L20 4"/>
-            <polyline points="20 15 20 20 15 20"/>
-            <path d="M14.5 14.5 L20 20"/>
-            <path d="M4 4 L9.5 9.5"/>
-          </svg>
-        </button>
-      </div>
-    </div>
     <div class="solo-stage" id="allStage">
       <div class="empty"><div class="icon">✦</div><p>Loading glimmers...</p></div>
     </div>
@@ -2091,7 +2003,6 @@ async function submitGlimmer() {
   btn.disabled = true;
 
   const city = composeCity; // capture the opt-in city before the modal resets
-  const newPost = { username: myUsername, text, hearts: 0 };
 
   // The feed is always visible now; make sure we're on the All tab so the
   // flying card has somewhere to land. Capture the compose box position while
@@ -2102,36 +2013,39 @@ async function submitGlimmer() {
   const startRect = document.getElementById('composeBox').getBoundingClientRect();
   closeCompose();
 
-  flyCard(newPost, async () => {
-    const payload = { username: myUsername, text, session_id: SESSION_ID };
-    if (city) payload.city = city;
-    const { data, error } = await db
-      .from('glimmers')
-      .insert([payload])
-      .select()
-      .single();
+  // The flying-card animation is purely decorative, so it runs in parallel
+  // with the actual submission rather than gating it — it used to wait for
+  // the ~700ms animation to finish before even starting the network request,
+  // which is what made the "Shared" checkmark feel slow to show up.
+  flyCard({ username: myUsername, text, hearts: 0 }, startRect);
 
-    if (error) {
-      showToast('Something went wrong. Try again?');
-      btn.disabled = false;
-      return;
-    }
+  const payload = { username: myUsername, text, session_id: SESSION_ID };
+  if (city) payload.city = city;
+  const { data, error } = await db
+    .from('glimmers')
+    .insert([payload])
+    .select()
+    .single();
 
-    input.value = '';
-    onInput();
-    showShareSuccess();
-    // Surface the new glimmer as the focused card in the All feed...
-    if (addPostToAll(data, { front: true })) {
-      const i = allSeq.findIndex(p => p.id === data.id);
-      if (i !== -1) { allCursor = i; renderSolo(); }
-    }
-    // ...and mirror it into the My Glimmers list.
-    insertIntoFeed(data, document.getElementById('myFeed'));
-  }, startRect);
+  if (error) {
+    showToast('Something went wrong. Try again?');
+    btn.disabled = false;
+    return;
+  }
+
+  input.value = '';
+  onInput();
+  showShareSuccess();
+  // Surface the new glimmer as the focused card in the All feed...
+  addPostToAll(data, { front: true });
+  const myCard = document.querySelector(`#allStage .glimmer-card[data-id="${data.id}"]`);
+  if (myCard) myCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  // ...and mirror it into the My Glimmers list.
+  insertIntoFeed(data, document.getElementById('myFeed'));
 }
 
 // ─── Flying card animation ───────────────────────────────────────────────────
-function flyCard(post, onComplete, startRect) {
+function flyCard(post, startRect) {
   const rect = startRect || document.getElementById('composeBox').getBoundingClientRect();
 
   const flying = document.createElement('div');
@@ -2155,16 +2069,13 @@ function flyCard(post, onComplete, startRect) {
     duration: 700,
     easing: 'cubic-bezier(0.4,0,0.2,1)',
     fill: 'forwards'
-  }).onfinish = () => {
-    flying.remove();
-    onComplete();
-  };
+  }).onfinish = () => flying.remove();
 }
 
 // Once someone has engaged with the glimmer currently in view (hearted or
-// saved it), move on to the next one — mirrors what a tug already does, so
-// browsing keeps flowing without an extra tap.
-function maybeAdvanceDeck(btn) {
+// saved it), scroll on to the next one so browsing keeps flowing without an
+// extra tap.
+function maybeAdvanceFeed(btn) {
   if (!btn.closest('#allStage')) return;
   setTimeout(soloNext, 550);
 }
@@ -2205,7 +2116,7 @@ async function heartGlimmer(id, btn) {
     btn.getBoundingClientRect().left + btn.getBoundingClientRect().width / 2,
     btn.getBoundingClientRect().top + btn.getBoundingClientRect().height / 2
   );
-  maybeAdvanceDeck(btn);
+  maybeAdvanceFeed(btn);
 }
 
 // ─── Save / unsave (bookmark) ─────────────────────────────────────────────────
@@ -2234,7 +2145,7 @@ function toggleSave(id, btn) {
     }
   }
 
-  if (nowSaved) maybeAdvanceDeck(btn);
+  if (nowSaved) maybeAdvanceFeed(btn);
 }
 
 // ─── Comments ────────────────────────────────────────────────────────────────
@@ -2420,18 +2331,26 @@ async function deleteGlimmer(id, btn) {
   showToast('Glimmer deleted.');
 }
 
-// Remove a glimmer from the solo All feed's in-memory sequence and re-render.
+// Remove a glimmer from the All feed's in-memory sequence and the DOM.
 function removePostFromAll(id) {
-  const wasCurrent = allSeq[allCursor] && allSeq[allCursor].id === id;
   allPosts = allPosts.filter(p => p.id !== id);
   allSeq = allSeq.filter(p => p.id !== id);
+
+  const card = document.querySelector(`#allStage .glimmer-card[data-id="${id}"]`);
+  const wasActive = !!(card && card.classList.contains('is-active'));
+  if (card) card.remove();
+
   if (!allSeq.length) {
     document.getElementById('allStage').innerHTML =
       `<div class="empty"><div class="icon">✦</div><p>No glimmers yet.</p></div>`;
     return;
   }
   if (allCursor >= allSeq.length) allCursor = allSeq.length - 1;
-  if (wasCurrent) renderSolo(); else updateSoloChrome();
+  observeFeedCards();
+  if (wasActive) {
+    const cards = document.querySelectorAll('#allStage .glimmer-card');
+    if (cards[allCursor]) cards[allCursor].scrollIntoView({ block: 'center' });
+  }
 }
 
 // If a list feed has no cards left after a delete, restore its empty state.
@@ -2763,6 +2682,7 @@ function buildCard(post, animate) {
     </div>
     <div class="card-prompt">My glimmer of the day was…</div>
     <div class="card-text">${escapeHtml(post.text)}</div>
+    <div class="card-divider"></div>
     <div class="card-actions">
       <button class="heart-btn ${hearted ? 'hearted' : ''}"
         onclick="heartGlimmer('${post.id}', this)"
@@ -2831,20 +2751,21 @@ function sparkleCard(card) {
 }
 
 // ─── All Glimmers feed: one glimmer at a time ─────────────────────────────────
-// The feed shows a single glimmer to keep focus on one moment. Users page
-// through it by tugging the card up/down or with the arrow keys, in either
-// reverse-chronological ("recent") or random ("shuffle") order. Posts are
-// fetched a page at a time into `allPosts`; `allSeq` is the display order;
-// `allCursor` is the visible position.
+// The feed shows a single glimmer at a time (scroll-snapped, see #allStage
+// .glimmer-card) to keep focus on one moment, always in reverse-chronological
+// order (most recent first). Users page through it by scrolling normally or
+// with the arrow keys. Posts are fetched a page at a time into `allPosts`;
+// `allSeq` is the display order (kept as its own array so pagination/
+// insertion logic doesn't have to touch `allPosts` directly); `allCursor` is
+// the visible position.
 const PAGE_SIZE = 30;
 let feedOffset = 0;
 let feedExhausted = false;
 let feedLoading = false;
 
-let allPosts = [];        // canonical fetched list (reverse-chronological)
-let allSeq = [];          // posts in current display order
-let allCursor = 0;        // index into allSeq currently shown
-let feedMode = 'recent';  // 'recent' | 'shuffle'
+let allPosts = [];  // canonical fetched list (reverse-chronological)
+let allSeq = [];     // display order — always mirrors allPosts
+let allCursor = 0;   // index into allSeq currently shown
 
 async function fetchPage(from) {
   const { data, error } = await db
@@ -2857,18 +2778,9 @@ async function fetchPage(from) {
   return data || [];
 }
 
-function shuffled(arr) {
-  const a = arr.slice();
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-// Rebuild the display sequence from allPosts for the current mode.
+// Rebuild the display sequence from allPosts.
 function rebuildSeq() {
-  allSeq = feedMode === 'shuffle' ? shuffled(allPosts) : allPosts.slice();
+  allSeq = allPosts.slice();
 }
 
 // Full (re)load of the live All Glimmers feed — resets pagination + position.
@@ -2899,7 +2811,7 @@ async function loadAllGlimmers() {
 
   // Sharing today's glimmer is required to see everyone else's. The page
   // fetched above stays cached in allPosts/allSeq so unlocking is instant —
-  // see addPostToAll(), which reveals the deck the moment this user shares.
+  // see addPostToAll(), which reveals the feed the moment this user shares.
   if (!hasEnteredToday()) { renderFeedGate(); return; }
 
   if (posts.length === 0) {
@@ -2907,10 +2819,10 @@ async function loadAllGlimmers() {
     feedExhausted = true;
     return;
   }
-  renderSolo();
+  renderAllFeed();
 }
 
-// Sharing gate shown in place of the deck until the visitor posts today.
+// Sharing gate shown in place of the feed until the visitor posts today.
 function renderFeedGate() {
   document.getElementById('allStage').innerHTML = `
     <div class="feed-gate">
@@ -2931,180 +2843,114 @@ async function loadMorePosts() {
   feedLoading = false;
   if (!posts || posts.length === 0) { feedExhausted = true; return; }
 
-  const currentId = allSeq[allCursor] && allSeq[allCursor].id;
-  posts.forEach(p => { if (!allPosts.some(x => x.id === p.id)) allPosts.push(p); });
+  const fresh = posts.filter(p => !allPosts.some(x => x.id === p.id));
+  fresh.forEach(p => allPosts.push(p));
   feedOffset += posts.length;
   if (posts.length < PAGE_SIZE) feedExhausted = true;
+  allSeq = allPosts.slice();
 
-  // Extend the display sequence without disturbing the viewed card.
-  if (feedMode === 'shuffle') {
-    allSeq = allSeq.concat(shuffled(posts));
-  } else {
-    allSeq = allPosts.slice();
-  }
-  if (currentId) {
-    const i = allSeq.findIndex(p => p.id === currentId);
-    if (i !== -1) allCursor = i;
-  }
-  updateSoloChrome();
-}
-
-// Build the deck scaffold (two decorative cards behind a draggable top card)
-// once, and wire up drag gestures on the top card.
-function ensureDeck() {
+  // Append without disturbing whatever the reader currently has in view.
   const stage = document.getElementById('allStage');
-  if (stage.querySelector('.deck')) return;
-  stage.innerHTML =
-    `<div class="deck" id="deck">
-       <div class="deck-back deck-back-2"></div>
-       <div class="deck-back deck-back-1"></div>
-       <div class="deck-top" id="deckTop"></div>
-     </div>`;
-  attachDeckDrag(document.getElementById('deckTop'));
+  fresh.forEach(p => stage.appendChild(buildCard(p, false)));
+  observeFeedCards();
 }
 
-// Render the card at allCursor onto the top of the deck, promoting it forward
-// (as if the next card in the stack rose to the front).
-function renderSolo() {
-  ensureDeck();
-  const post = allSeq[allCursor];
-  if (!post) return;
-  const top = document.getElementById('deckTop');
-  top.style.transition = 'none';
-  top.style.transform = '';
-  top.style.opacity = '1';
-  const card = buildCard(post, false);
-  card.style.animation = 'deckPromote 0.3s cubic-bezier(0.4,0,0.2,1) both';
-  top.innerHTML = '';
-  top.appendChild(card);
-  updateSoloChrome();
-}
-
-// Sync the "more underneath" stack cue with the current position.
-function updateSoloChrome() {
-  const deck = document.getElementById('deck');
-  if (!allSeq.length) return;
-  // Hide the peeking back-cards once there's nothing left under the top card.
-  const isLast = feedExhausted && allCursor >= allSeq.length - 1;
-  if (deck) deck.classList.toggle('is-last', isLast);
-}
-
-function soloNext() {
-  if (allCursor < allSeq.length - 1) {
-    allCursor++;
-    renderSolo();
+// Build the full list of currently-loaded posts as a scrollable, snap-to-
+// center feed and jump (instantly, no animation) to the remembered position.
+function renderAllFeed() {
+  const stage = document.getElementById('allStage');
+  stage.innerHTML = '';
+  allSeq.forEach(post => stage.appendChild(buildCard(post, false)));
+  observeFeedCards();
+  const cards = stage.querySelectorAll('.glimmer-card');
+  if (cards[allCursor]) {
+    cards[allCursor].classList.add('is-active');
+    cards[allCursor].scrollIntoView({ block: 'center' });
   }
-  // Prefetch as we near the end of what's loaded.
-  if (!feedExhausted && allCursor >= allSeq.length - 3) loadMorePosts();
+}
+
+// Tracks which card is most centered in the stage and marks it .is-active
+// (everything else fades via CSS) — re-run whenever cards are added/removed
+// so newly-appended cards get observed too. Also drives allCursor and the
+// pagination prefetch, since "current position" is now just "what's centered"
+// rather than something we set explicitly when swapping a single card.
+let feedCardObserver = null;
+let feedCardRatios = new Map();
+function observeFeedCards() {
+  const stage = document.getElementById('allStage');
+  const cards = stage.querySelectorAll('.glimmer-card');
+  if (feedCardObserver) feedCardObserver.disconnect();
+  feedCardRatios = new Map();
+  if (!cards.length) return;
+
+  feedCardObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => feedCardRatios.set(entry.target, entry.intersectionRatio));
+    let bestCard = null, bestRatio = 0;
+    feedCardRatios.forEach((ratio, card) => { if (ratio > bestRatio) { bestRatio = ratio; bestCard = card; } });
+    if (!bestCard) return;
+
+    stage.querySelectorAll('.glimmer-card.is-active').forEach(c => {
+      if (c !== bestCard) c.classList.remove('is-active');
+    });
+    bestCard.classList.add('is-active');
+
+    const i = allSeq.findIndex(p => String(p.id) === String(bestCard.dataset.id));
+    if (i !== -1) {
+      allCursor = i;
+      // Prefetch as we near the end of what's loaded.
+      if (!feedExhausted && !feedLoading && allCursor >= allSeq.length - 3) loadMorePosts();
+    }
+  }, { root: stage, threshold: Array.from({ length: 21 }, (_, i) => i / 20) });
+
+  cards.forEach(c => feedCardObserver.observe(c));
+}
+
+// Smooth-scroll to the next/previous card — used by the arrow keys and by
+// maybeAdvanceFeed() (auto-advance after hearting/saving).
+function soloNext() {
+  const cards = [...document.querySelectorAll('#allStage .glimmer-card')];
+  const idx = cards.findIndex(c => c.classList.contains('is-active'));
+  if (idx !== -1 && idx < cards.length - 1) {
+    cards[idx + 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
 }
 
 function soloPrev() {
-  if (allCursor > 0) {
-    allCursor--;
-    renderSolo();
+  const cards = [...document.querySelectorAll('#allStage .glimmer-card')];
+  const idx = cards.findIndex(c => c.classList.contains('is-active'));
+  if (idx > 0) {
+    cards[idx - 1].scrollIntoView({ behavior: 'smooth', block: 'center' });
   }
-}
-
-// Tug-to-browse: drag the card up/down against rubber-band resistance —
-// crossing the commit line fires a short haptic tick and, on release,
-// advances (up) or goes back (down). Falling short snaps back to place.
-function attachDeckDrag(top) {
-  let startY = 0, dy = 0, active = false, ticked = false;
-  const THRESH = 110;   // post-resistance distance needed to commit
-  const RESIST = 0.55;  // damping while dragging — makes it feel like a tug, not a flick
-
-  function buzz(pattern) { if (navigator.vibrate) navigator.vibrate(pattern); }
-
-  top.addEventListener('pointerdown', e => {
-    // Don't hijack taps on the heart/comment/save/report controls, the
-    // textarea, or an open comment thread (which may need its own scroll).
-    if (e.target.closest('button, textarea, a, .comment-thread')) return;
-    active = true; dy = 0; ticked = false;
-    startY = e.clientY;
-    top.style.transition = 'none';
-    try { top.setPointerCapture(e.pointerId); } catch (_) {}
-  });
-
-  top.addEventListener('pointermove', e => {
-    if (!active) return;
-    e.preventDefault();
-    dy = (e.clientY - startY) * RESIST;
-    const settle = 1 - Math.min(Math.abs(dy), 140) / 2400;
-    top.style.transform = `translateY(${dy}px) scale(${settle})`;
-    const past = Math.abs(dy) > THRESH;
-    if (past && !ticked) { ticked = true; buzz(9); }
-    else if (!past) ticked = false;
-  });
-
-  function release() {
-    if (!active) return;
-    active = false;
-    top.style.transition = 'transform 0.32s cubic-bezier(0.34,1.56,0.64,1), opacity 0.25s';
-    if (Math.abs(dy) > THRESH) {
-      const goNext = dy < 0;
-      const canGo = goNext ? allCursor < allSeq.length - 1 : allCursor > 0;
-      if (canGo) {
-        const off = goNext ? -1 : 1;
-        top.style.transform = `translateY(${off * 120}%) scale(0.94)`;
-        top.style.opacity = '0';
-        setTimeout(() => { goNext ? soloNext() : soloPrev(); }, 220);
-        return;
-      }
-      buzz([0, 10, 40, 10]); // reached the end — a firmer "nope" instead of a tick
-    }
-    top.style.transform = 'translateY(0) scale(1)'; // snap back
-  }
-  top.addEventListener('pointerup', release);
-  top.addEventListener('pointercancel', release);
-}
-
-// Toggle reverse-chronological vs random order; restart from the first card.
-function setFeedMode(mode) {
-  if (mode === feedMode) return;
-  feedMode = mode;
-  document.getElementById('orderRecent').classList.toggle('active', mode === 'recent');
-  document.getElementById('orderShuffle').classList.toggle('active', mode === 'shuffle');
-  if (!allPosts.length) return;
-  rebuildSeq();
-  allCursor = 0;
-  renderSolo();
 }
 
 // Add a glimmer arriving via real-time / own submit into the live sequence
-// without disturbing the card the user is currently reading.
+// without disturbing the card the reader currently has in view.
 function addPostToAll(post, { front = false } = {}) {
   if (post.reported) return false;
   if (allPosts.some(p => p.id === post.id)) return false;
 
-  const currentId = allSeq[allCursor] && allSeq[allCursor].id;
   if (front) allPosts.unshift(post); else allPosts.push(post);
+  allSeq = allPosts.slice();
 
-  if (feedMode === 'recent') {
-    allSeq = allPosts.slice();
-  } else {
-    // Drop it somewhere still ahead of the reader so it's reachable later.
-    const at = Math.min(allSeq.length, allCursor + 1 + Math.floor(Math.random() * 4));
-    allSeq.splice(at, 0, post);
-  }
-  if (currentId) {
-    const i = allSeq.findIndex(p => p.id === currentId);
-    if (i !== -1) allCursor = i;
-  }
   // Keep new posts queued in memory while the sharing gate is up, but don't
-  // reveal the deck until this visitor has shared today.
+  // reveal the feed until this visitor has shared today.
   if (!hasEnteredToday()) return true;
-  // If the stage was empty (first glimmer ever, or the gate just lifted), show it now.
-  if (!document.querySelector('#allStage .glimmer-card')) {
+
+  const stage = document.getElementById('allStage');
+  if (!stage.querySelector('.glimmer-card')) {
+    // Stage was empty (first glimmer ever) or still showing the gate.
     feedExhausted = false;
-    allCursor = front ? 0 : allCursor;
-    renderSolo();
+    allCursor = front ? 0 : allSeq.length - 1;
+    renderAllFeed();
   } else {
-    updateSoloChrome();
+    const card = buildCard(post, true);
+    if (front) stage.insertBefore(card, stage.firstChild); else stage.appendChild(card);
+    observeFeedCards();
   }
   return true;
 }
 
-// Keyboard navigation for the deck (tug is handled per-card in attachDeckDrag).
+// Keyboard navigation for the feed (scroll it yourself, or use the arrows).
 document.addEventListener('keydown', e => {
   if (activeTab !== 'all') return;
   const tag = (document.activeElement && document.activeElement.tagName) || '';
