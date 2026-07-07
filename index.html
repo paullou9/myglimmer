@@ -100,7 +100,14 @@
     letter-spacing: -0.3px;
     line-height: 1;
     cursor: pointer;
+    color: var(--ink);
+  }
+  .logo-star {
+    display: inline-block;
     color: var(--amber);
+    font-size: 0.5em;
+    vertical-align: middle;
+    margin: 0 0.02em 0.1em;
   }
 
   /* ── Loading screen ───────────────────────────────────────────────────────── */
@@ -385,6 +392,15 @@
   }
   .regenerate-btn:hover { background: var(--cream); color: var(--ink); }
 
+  .mine-toolbar { display: flex; justify-content: flex-end; align-items: center; height: 30px; margin-bottom: 14px; }
+  .calendar-btn {
+    background: none; border: 1px solid var(--border); border-radius: 50%;
+    width: 30px; height: 30px; display: flex; align-items: center; justify-content: center;
+    color: var(--ink-light); cursor: pointer; transition: all 0.15s;
+  }
+  .calendar-btn:hover { background: var(--cream); color: var(--ink); }
+  .calendar-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round; }
+
   .prompt-label {
     font-family: 'Times New Roman', Times, serif;
     font-style: italic;
@@ -515,6 +531,12 @@
   .glimmer-card > * { position: relative; z-index: 1; }
 
   .glimmer-card:hover { box-shadow: var(--shadow-lift); transform: translateY(-1px); }
+
+  .glimmer-card.jump-highlight { animation: jumpPulse 1.6s ease; }
+  @keyframes jumpPulse {
+    0%, 100% { box-shadow: var(--shadow); }
+    15% { box-shadow: 0 0 0 3px var(--amber-light), var(--shadow-lift); }
+  }
 
   @keyframes cardEnter {
     from { opacity: 0; transform: translateY(20px) scale(0.97); }
@@ -798,6 +820,30 @@
 
   .modal h3 { font-family: 'Instrument Serif', serif; font-size: 22px; margin-bottom: 8px; }
   .modal p { font-size: 13px; color: var(--ink-light); line-height: 1.5; margin-bottom: 20px; }
+
+  /* ── Calendar modal (Mine tab) ────────────────────────────────────────────── */
+  .calendar-modal { max-width: 340px; }
+  .calendar-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+  .calendar-nav h3 { margin: 0; }
+  .calendar-arrow { background: none; border: none; font-size: 22px; line-height: 1; color: var(--ink-light); cursor: pointer; padding: 4px 10px; transition: color 0.15s; }
+  .calendar-arrow:hover { color: var(--ink); }
+  .calendar-arrow:disabled { opacity: 0.3; cursor: default; }
+  .calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 11px; color: var(--ink-light); font-weight: 500; margin-bottom: 6px; }
+  .calendar-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+  .cal-day { position: relative; aspect-ratio: 1; background: none; border: none; border-radius: 8px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-family: 'Albert Sans', sans-serif; font-size: 13px; color: var(--ink); transition: background 0.15s; }
+  .cal-day:disabled { color: var(--ink-light); opacity: 0.45; cursor: default; }
+  .cal-day:not(:disabled):hover { background: var(--cream); }
+  .cal-day-blank { visibility: hidden; }
+  .cal-day-dot { position: absolute; bottom: 5px; width: 4px; height: 4px; border-radius: 50%; background: var(--amber); }
+  .cal-day-today { box-shadow: inset 0 0 0 1.5px var(--amber); border-radius: 50%; }
+  .cal-day-selected { background: var(--amber-light); }
+  .calendar-detail { max-height: 0; overflow: hidden; transition: max-height 0.25s ease; }
+  .calendar-detail.open { max-height: 220px; margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+  .calendar-detail-entry + .calendar-detail-entry { margin-top: 14px; }
+  .calendar-detail-label { font-family: 'Times New Roman', Times, serif; font-style: italic; font-size: 15px; color: var(--ink-light); margin-bottom: 6px; }
+  .calendar-detail-text { font-family: 'Times New Roman', Times, serif; font-size: 17px; line-height: 1.6; color: var(--ink); margin-bottom: 8px; }
+  .calendar-jump-link { font-family: 'Albert Sans', sans-serif; font-size: 13px; font-weight: 500; color: var(--amber); text-decoration: none; }
+  .calendar-jump-link:hover { text-decoration: underline; }
 
   /* ── Username picker (first-run commit + later renames) ─────────────────── */
   .username-modal { position: relative; text-align: center; max-width: 400px; }
@@ -1195,7 +1241,7 @@
   .landing-topbar .logo-mark {
     font-family: 'Instrument Serif', serif;
     font-size: 24px;
-    color: var(--amber);
+    color: var(--ink);
     pointer-events: auto;
   }
   .landing-skip {
@@ -1423,7 +1469,7 @@
 <!-- ── First-time landing experience ───────────────────────────────────────── -->
 <div class="landing" id="landing" role="dialog" aria-label="Welcome to MyGlimmer">
   <div class="landing-topbar">
-    <span class="logo-mark">MyGlimmer</span>
+    <span class="logo-mark">My<span class="logo-star">✦</span>Glimmer</span>
     <button class="landing-skip" id="landingSkipBtn" onclick="skipLandingIntro()">Skip intro ↓</button>
   </div>
   <div class="landing-dots" aria-hidden="true">
@@ -1522,7 +1568,7 @@
 
 <div class="page">
   <header>
-    <div class="logo" onclick="goHome()">MyGlimmer</div>
+    <div class="logo" onclick="goHome()">My<span class="logo-star">✦</span>Glimmer</div>
     <div class="header-actions">
       <button class="hamburger" id="menuBtn" onclick="openMenu()" aria-label="Menu"
         aria-haspopup="true" aria-expanded="false">
@@ -1568,6 +1614,15 @@
 
   <!-- ── My Glimmers panel ───────────────────────────────────────────────── -->
   <div class="tab-panel" id="panelMine">
+    <div class="mine-toolbar">
+      <button class="calendar-btn" id="calendarBtn" onclick="openCalendar()" title="View calendar" aria-label="View calendar">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="4" y="5.5" width="16" height="15" rx="2"/>
+          <path d="M4 9.5 h16"/>
+          <path d="M8 3.5 v4 M16 3.5 v4"/>
+        </svg>
+      </button>
+    </div>
     <div id="myFeed">
       <div class="empty"><div class="icon">✦</div><p>Loading your glimmers...</p></div>
     </div>
@@ -1685,6 +1740,23 @@
     <div class="modal-actions">
       <button class="btn-primary" onclick="closeIosInstall()">Got it</button>
     </div>
+  </div>
+</div>
+
+<!-- ── Calendar modal (Mine tab) ─────────────────────────────────────────────── -->
+<div class="modal-overlay" id="calendarModal" onclick="if(event.target===this)closeCalendar()">
+  <div class="modal calendar-modal">
+    <button class="compose-close" onclick="closeCalendar()" aria-label="Close">✕</button>
+    <div class="calendar-nav">
+      <button class="calendar-arrow" id="calPrevBtn" onclick="calendarShiftMonth(-1)" aria-label="Previous month">‹</button>
+      <h3 id="calMonthLabel"></h3>
+      <button class="calendar-arrow" id="calNextBtn" onclick="calendarShiftMonth(1)" aria-label="Next month">›</button>
+    </div>
+    <div class="calendar-weekdays">
+      <span>S</span><span>M</span><span>T</span><span>W</span><span>T</span><span>F</span><span>S</span>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
+    <div class="calendar-detail" id="calendarDetail"></div>
   </div>
 </div>
 
@@ -2042,6 +2114,8 @@ async function submitGlimmer() {
   if (myCard) myCard.scrollIntoView({ behavior: 'smooth', block: 'center' });
   // ...and mirror it into the My Glimmers list.
   insertIntoFeed(data, document.getElementById('myFeed'));
+  if (!myPosts.some(p => p.id === data.id)) myPosts.unshift(data);
+  if (document.getElementById('calendarModal').classList.contains('open')) renderCalendarGrid();
 }
 
 // ─── Flying card animation ───────────────────────────────────────────────────
@@ -2310,15 +2384,17 @@ async function confirmReport() {
 // ─── Delete ──────────────────────────────────────────────────────────────────
 async function deleteGlimmer(id, btn) {
   btn.disabled = true;
-  const { error } = await db.from('glimmers').delete().eq('id', id).eq('session_id', SESSION_ID);
+  const { error } = await db.from('glimmers').update({ deleted: true }).eq('id', id).eq('session_id', SESSION_ID);
   if (error) {
     btn.disabled = false;
     showToast('Could not delete: ' + (error.message || error.code));
     console.error('Delete error:', error);
     return;
   }
-  // Drop it from the solo All feed (in-memory) and the My Glimmers list.
+  // Drop it from the solo All feed (in-memory), the My Glimmers list, and the calendar's post cache.
   removePostFromAll(id);
+  myPosts = myPosts.filter(p => p.id !== id);
+  if (document.getElementById('calendarModal').classList.contains('open')) renderCalendarGrid();
   document.querySelectorAll(`#myFeed .glimmer-card[data-id="${id}"], #savedFeed .glimmer-card[data-id="${id}"]`).forEach(card => {
     card.style.transition = 'opacity 0.3s, transform 0.3s';
     card.style.opacity = '0';
@@ -2772,6 +2848,7 @@ async function fetchPage(from) {
     .from('glimmers')
     .select('*')
     .eq('reported', false)
+    .eq('deleted', false)
     .order('created_at', { ascending: false })
     .range(from, from + PAGE_SIZE - 1);
   if (error) { console.error('Feed load error:', error); return null; }
@@ -2979,6 +3056,7 @@ async function loadSavedGlimmers() {
     .select('*')
     .in('id', ids)
     .eq('reported', false)
+    .eq('deleted', false)
     .order('created_at', { ascending: false });
 
   if (error || !data || data.length === 0) {
@@ -2996,6 +3074,9 @@ function myEmptyState() {
 }
 
 let myGlimmersLoaded = false;
+let myPosts = [];              // full post history for Mine tab / calendar, mirrors the allPosts convention
+let calendarViewDate = null;   // first-of-month Date currently shown in the modal
+let calendarSelectedKey = null; // "YYYY-MM-DD" of the currently expanded day, or null
 
 async function loadMyGlimmers() {
   const feed = document.getElementById('myFeed');
@@ -3006,9 +3087,11 @@ async function loadMyGlimmers() {
     .select('*')
     .eq('session_id', SESSION_ID)
     .eq('reported', false)
+    .eq('deleted', false)
     .order('created_at', { ascending: false });
 
   myGlimmersLoaded = true;
+  myPosts = data || [];
 
   if (error || !data || data.length === 0) {
     feed.innerHTML = myEmptyState();
@@ -3017,6 +3100,91 @@ async function loadMyGlimmers() {
 
   feed.innerHTML = '';
   data.forEach(p => appendPost(p, false, feed));
+}
+
+// ─── Calendar modal ─────────────────────────────────────────────────────────
+function openCalendar() {
+  const now = new Date();
+  calendarViewDate = new Date(now.getFullYear(), now.getMonth(), 1);
+  calendarSelectedKey = null;
+  renderCalendarGrid();
+  document.getElementById('calendarModal').classList.add('open');
+}
+
+function closeCalendar() {
+  document.getElementById('calendarModal').classList.remove('open');
+}
+
+function calendarShiftMonth(delta) {
+  const d = calendarViewDate;
+  const next = new Date(d.getFullYear(), d.getMonth() + delta, 1);
+  const now = new Date();
+  if (next > new Date(now.getFullYear(), now.getMonth(), 1)) return; // never navigate into the future
+  calendarViewDate = next;
+  calendarSelectedKey = null;
+  renderCalendarGrid();
+}
+
+function renderCalendarGrid() {
+  const d = calendarViewDate;
+  const year = d.getFullYear(), month = d.getMonth();
+  document.getElementById('calMonthLabel').textContent =
+    d.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  const now = new Date();
+  document.getElementById('calNextBtn').disabled =
+    (year === now.getFullYear() && month === now.getMonth());
+
+  const postedKeys = new Set(myPosts.map(p => dayKeyLocal(p.created_at)));
+  const startWeekday = new Date(year, month, 1).getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const todayK = todayKey();
+
+  let html = '';
+  for (let i = 0; i < startWeekday; i++) html += `<div class="cal-day cal-day-blank"></div>`;
+  for (let day = 1; day <= daysInMonth; day++) {
+    const key = dayKeyLocal(new Date(year, month, day).getTime());
+    const isPosted = postedKeys.has(key);
+    html += `<button type="button" class="cal-day ${key === todayK ? 'cal-day-today' : ''} ${key === calendarSelectedKey ? 'cal-day-selected' : ''}"
+      ${isPosted ? `onclick="calendarSelectDay('${key}')"` : 'disabled'}>
+      <span class="cal-day-num">${day}</span>
+      ${isPosted ? '<span class="cal-day-dot"></span>' : ''}
+    </button>`;
+  }
+  document.getElementById('calendarGrid').innerHTML = html;
+  renderCalendarDetail();
+}
+
+function calendarSelectDay(key) {
+  calendarSelectedKey = (calendarSelectedKey === key) ? null : key; // tap again to collapse
+  renderCalendarGrid();
+}
+
+function renderCalendarDetail() {
+  const detailEl = document.getElementById('calendarDetail');
+  const matches = calendarSelectedKey ? myPosts.filter(p => dayKeyLocal(p.created_at) === calendarSelectedKey) : [];
+  if (matches.length === 0) { detailEl.innerHTML = ''; detailEl.classList.remove('open'); return; }
+
+  detailEl.innerHTML = matches.map(post => `
+    <div class="calendar-detail-entry">
+      <div class="calendar-detail-label">My glimmer of the day was…</div>
+      <div class="calendar-detail-text">${escapeHtml(post.text)}</div>
+      <a href="#" class="calendar-jump-link" onclick="jumpToEntry(event, '${post.id}')">Jump to entry →</a>
+    </div>
+  `).join('');
+  detailEl.classList.add('open');
+}
+
+function jumpToEntry(e, id) {
+  e.preventDefault();
+  closeCalendar();
+  requestAnimationFrame(() => {
+    const card = document.querySelector(`#myFeed .glimmer-card[data-id="${id}"]`);
+    if (!card) return;
+    card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    card.classList.add('jump-highlight');
+    setTimeout(() => card.classList.remove('jump-highlight'), 1600);
+  });
 }
 
 // ─── Real-time subscription ───────────────────────────────────────────────────
@@ -3032,6 +3200,8 @@ function subscribeToGlimmers() {
       addPostToAll(payload.new, { front: true });
       if (payload.new.session_id === SESSION_ID && myGlimmersLoaded) {
         insertIntoFeed(payload.new, document.getElementById('myFeed'));
+        if (!myPosts.some(p => p.id === payload.new.id)) myPosts.unshift(payload.new);
+        if (document.getElementById('calendarModal').classList.contains('open')) renderCalendarGrid();
       }
     })
     .on('postgres_changes', {
