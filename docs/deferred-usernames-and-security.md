@@ -281,6 +281,94 @@ Stop trusting a client-supplied identifier; derive identity server-side:
 
 ---
 
+## Part 3 — Content moderation hardening (2026-07-07, ahead of the launch post)
+
+### 3.1 Client-side filter (already shipped)
+`moderateText()` in index.html grew from a 4-word substring check to a categorized
+blocklist (slurs, self-harm encouragement, violence/threats, sexual exploitation of
+minors) plus URL/email/phone detection, with normalization to resist common evasion
+(leetspeak substitution, punctuation-spaced letters like "k.y.s", stretched repeats like
+"kyssss", accents). Deliberately excludes phrase entries that collide with innocent
+content in this app's domain — e.g. "school shooting" was tried and rejected because it
+false-positives on posts like "shooting hoops after school."
+
+**This is a UX layer only.** It runs in the browser before the network call, so it can be
+skipped entirely by anyone calling the Supabase REST API directly with the public anon
+key — e.g. `db.from('glimmers').insert(...)` from the console bypasses every client-side
+check, the same bypass pattern used (for legitimate, benign test content) multiple times
+earlier in this project. There's no CHECK constraint or trigger on `glimmers`/`comments`
+today, confirmed by schema inspection, so this gap is real, not hypothetical — it just
+wasn't re-demonstrated with actual banned content here, since doing that against the live
+production table isn't something to do even transiently.
+
+### 3.2 Server-side enforcement (run this in the Supabase SQL editor)
+A `before insert` trigger on both `glimmers` and `comments` re-checks `NEW.text` against
+a (simpler, non-leetspeak) mirror of the same blocklist, so the check can't be bypassed
+by going around the client:
+
+```sql
+create or replace function moderate_text_check()
+returns trigger
+language plpgsql
+as $$
+declare
+  normalized text;
+  banned text[] := array[
+    'nigger','nigga','faggot','fag','tranny','retard','spic','kike','chink','gook',
+    'wetback','beaner','coon','dyke',
+    'kill yourself','kys','kill urself','end your life','you should die','go die',
+    'commit suicide',
+    'i will kill you','ill kill you','bomb threat','shoot up the school',
+    'child porn','cp link','underage sex','minor sex'
+  ];
+  w text;
+begin
+  normalized := lower(regexp_replace(NEW.text, '[^a-zA-Z0-9\s]', ' ', 'g'));
+  normalized := regexp_replace(normalized, '\s+', ' ', 'g');
+  foreach w in array banned loop
+    if normalized like '%' || w || '%' then
+      raise exception 'This content is not allowed.' using errcode = '23514';
+    end if;
+  end loop;
+  return NEW;
+end;
+$$;
+
+drop trigger if exists trg_moderate_glimmers on public.glimmers;
+create trigger trg_moderate_glimmers before insert on public.glimmers
+for each row execute function moderate_text_check();
+
+drop trigger if exists trg_moderate_comments on public.comments;
+create trigger trg_moderate_comments before insert on public.comments
+for each row execute function moderate_text_check();
+```
+
+Scoped to `before insert` only (not `update`) since neither table has an edit-text
+feature — `deleteGlimmer`'s `.update({deleted:true})` and the `increment_hearts`/
+`increment_comments` RPCs never touch the `text` column, so they're unaffected.
+
+When the trigger rejects a row, the client's `.insert()` call receives a Postgres error
+(`error.message` will read something like the raised exception text) — `submitGlimmer`/
+`submitComment` already handle the generic error path (`showToast('Something went
+wrong...')` / `'Couldn't post your comment...'`), so no JS changes are required for this
+to degrade gracefully; a request that slips past the client filter and hits this trigger
+just surfaces as a normal failed-submit toast instead of a specific "blocked" message.
+
+### 3.3 Notes / non-goals
+- Keep the SQL blocklist and the JS `MODERATION_BLOCKLIST` roughly in sync when either is
+  edited — they're intentionally not auto-generated from one source, so a future edit to
+  one is easy to forget on the other.
+- Still a static wordlist, not a real classifier — won't catch novel harassment phrasing,
+  coded language, or context-dependent abuse. If volume from the launch post justifies it,
+  the next step up is routing new posts through a hosted moderation API (e.g. OpenAI's
+  moderation endpoint or Perspective API) from a Supabase Edge Function before insert,
+  rather than growing this array indefinitely.
+- Reported content (the existing `reports` table) still requires manual review in the
+  Supabase dashboard — this trigger only stops known-bad content at submit time, it
+  doesn't replace the report queue for judgment-call content.
+
+---
+
 ## Re-apply order
 1. Confirm Supabase objects from §1.5 exist (they do).
 2. Apply Part 1 (generator → persistence/picker JS → picker modal markup+CSS → compose
@@ -289,3 +377,5 @@ Stop trusting a client-supplied identifier; derive identity server-side:
 4. Verify: fresh `localStorage` shows the commit gate once; shuffle + commit persist across
    reloads; rename fires `claim_username` and backfills; a second browser can't claim a taken
    name; feed responses contain no `session_id`.
+5. Apply Part 3 (moderation blocklist expansion in index.html, then run the SQL trigger in
+   §3.2 in the Supabase SQL editor).
