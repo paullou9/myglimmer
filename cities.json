@@ -1,0 +1,93 @@
+[
+"New York, NY","Los Angeles, CA","Chicago, IL","Houston, TX","Phoenix, AZ","Philadelphia, PA","San Antonio, TX","San Diego, CA","Dallas, TX","San Jose, CA",
+"Austin, TX","Jacksonville, FL","Fort Worth, TX","Columbus, OH","Charlotte, NC","San Francisco, CA","Indianapolis, IN","Seattle, WA","Denver, CO","Washington, DC",
+"Boston, MA","El Paso, TX","Nashville, TN","Detroit, MI","Oklahoma City, OK","Portland, OR","Las Vegas, NV","Memphis, TN","Louisville, KY","Baltimore, MD",
+"Milwaukee, WI","Albuquerque, NM","Tucson, AZ","Fresno, CA","Sacramento, CA","Mesa, AZ","Kansas City, MO","Atlanta, GA","Omaha, NE","Colorado Springs, CO",
+"Raleigh, NC","Long Beach, CA","Virginia Beach, VA","Miami, FL","Oakland, CA","Minneapolis, MN","Tulsa, OK","Bakersfield, CA","Tampa, FL","Wichita, KS",
+"Arlington, TX","Aurora, CO","New Orleans, LA","Cleveland, OH","Anaheim, CA","Honolulu, HI","Henderson, NV","Stockton, CA","Lexington, KY","Corpus Christi, TX",
+"Riverside, CA","Santa Ana, CA","Orlando, FL","Irvine, CA","Cincinnati, OH","Newark, NJ","Saint Paul, MN","Pittsburgh, PA","St. Louis, MO","Greensboro, NC",
+"Jersey City, NJ","Anchorage, AK","Lincoln, NE","Plano, TX","Durham, NC","Buffalo, NY","Chandler, AZ","Chula Vista, CA","Toledo, OH","Madison, WI",
+"Gilbert, AZ","Reno, NV","Fort Wayne, IN","North Las Vegas, NV","St. Petersburg, FL","Lubbock, TX","Irving, TX","Laredo, TX","Winston-Salem, NC","Chesapeake, VA",
+"Glendale, AZ","Garland, TX","Scottsdale, AZ","Norfolk, VA","Boise, ID","Fremont, CA","Spokane, WA","Santa Clarita, CA","Baton Rouge, LA","Richmond, VA",
+"Hialeah, FL","Tacoma, WA","San Bernardino, CA","Modesto, CA","Fontana, CA","Des Moines, IA","Moreno Valley, CA","Fayetteville, NC","Santa Rosa, CA","Yonkers, NY",
+"Salt Lake City, UT","Rochester, NY","Huntington Beach, CA","Grand Rapids, MI","Amarillo, TX","Overland Park, KS","Providence, RI","Knoxville, TN","Worcester, MA","Brownsville, TX",
+"Tallahassee, FL","Newport News, VA","Huntsville, AL","Mobile, AL","Cape Coral, FL","Ontario, CA","Vancouver, WA","Chattanooga, TN","Fort Lauderdale, FL","Sioux Falls, SD",
+"Cary, NC","Elk Grove, CA","Rancho Cucamonga, CA","Springfield, MO","Eugene, OR","Pembroke Pines, FL","Salem, OR","Peoria, AZ","Corona, CA","Oceanside, CA",
+"Fort Collins, CO","Garden Grove, CA","Jackson, MS","Alexandria, VA","Hayward, CA","Clarksville, TN","Lakewood, CO","Lancaster, CA","Palmdale, CA","Salinas, CA",
+"Springfield, MA","Hollywood, FL","Macon, GA","Kansas City, KS","Sunnyvale, CA","Pomona, CA","Killeen, TX","Escondido, CA","Pasadena, TX","Naperville, IL",
+"Bellevue, WA","Joliet, IL","Murfreesboro, TN","Rockford, IL","Paterson, NJ","Savannah, GA","Bridgeport, CT","Torrance, CA","McKinney, TX","Syracuse, NY",
+"Mesquite, TX","Surprise, AZ","Denton, TX","Roseville, CA","Pasadena, CA","Olathe, KS","Dayton, OH","Hampton, VA","Meridian, ID","Frisco, TX",
+"Fullerton, CA","Warren, MI","McAllen, TX","Columbia, SC","Cedar Rapids, IA","Sterling Heights, MI","New Haven, CT","Waco, TX","Charleston, SC","Thousand Oaks, CA",
+"Cambridge, MA","Green Bay, WI","Topeka, KS","Visalia, CA","Waterbury, CT","Coral Springs, FL","Athens, GA","Simi Valley, CA","Norman, OK","Columbia, MO",
+"Fargo, ND","El Monte, CA","Carrollton, TX","Elizabeth, NJ","Abilene, TX","Independence, MO","Manchester, NH","Wilmington, NC","Allentown, PA","Peoria, IL",
+"Ann Arbor, MI","Berkeley, CA","Provo, UT","Beaumont, TX","Little Rock, AR","Burbank, CA","Gainesville, FL","Rochester, MN","Boulder, CO","Santa Barbara, CA",
+"Asheville, NC","Portland, ME","Montgomery, AL","Juneau, AK","Hartford, CT","Dover, DE","Springfield, IL","Frankfort, KY","Augusta, ME","Annapolis, MD",
+"Lansing, MI","Jefferson City, MO","Helena, MT","Carson City, NV","Concord, NH","Trenton, NJ","Santa Fe, NM","Albany, NY","Bismarck, ND","Harrisburg, PA",
+"Pierre, SD","Montpelier, VT","Olympia, WA","Charleston, WV","Cheyenne, WY","Brooklyn, NY","Queens, NY",
+
+"Toronto, ON","Montreal, QC","Vancouver, BC","Calgary, AB","Edmonton, AB","Ottawa, ON","Winnipeg, MB","Quebec City, QC","Hamilton, ON","Kitchener, ON",
+"London, ON","Victoria, BC","Halifax, NS","Saskatoon, SK","Regina, SK","St. John's, NL",
+
+"Mexico City, Mexico","Guadalajara, Mexico","Monterrey, Mexico","Puebla, Mexico","Tijuana, Mexico","León, Mexico","Cancún, Mexico","Mérida, Mexico",
+
+"London, UK","Birmingham, UK","Manchester, UK","Glasgow, UK","Liverpool, UK","Edinburgh, UK","Leeds, UK","Sheffield, UK","Bristol, UK","Cardiff, UK",
+"Belfast, UK","Newcastle, UK","Nottingham, UK","Oxford, UK","Cambridge, UK",
+
+"Dublin, Ireland","Cork, Ireland","Galway, Ireland",
+
+"Paris, France","Marseille, France","Lyon, France","Toulouse, France","Nice, France","Nantes, France","Strasbourg, France","Bordeaux, France","Lille, France",
+
+"Berlin, Germany","Hamburg, Germany","Munich, Germany","Cologne, Germany","Frankfurt, Germany","Stuttgart, Germany","Düsseldorf, Germany","Dortmund, Germany","Essen, Germany","Leipzig, Germany",
+"Dresden, Germany","Hannover, Germany","Nuremberg, Germany",
+
+"Madrid, Spain","Barcelona, Spain","Valencia, Spain","Seville, Spain","Zaragoza, Spain","Málaga, Spain","Bilbao, Spain",
+"Lisbon, Portugal","Porto, Portugal",
+
+"Rome, Italy","Milan, Italy","Naples, Italy","Turin, Italy","Palermo, Italy","Genoa, Italy","Bologna, Italy","Florence, Italy","Venice, Italy",
+
+"Amsterdam, Netherlands","Rotterdam, Netherlands","The Hague, Netherlands","Utrecht, Netherlands","Eindhoven, Netherlands",
+"Brussels, Belgium","Antwerp, Belgium","Ghent, Belgium",
+
+"Zurich, Switzerland","Geneva, Switzerland","Basel, Switzerland","Bern, Switzerland","Lausanne, Switzerland",
+"Vienna, Austria","Salzburg, Austria","Graz, Austria",
+
+"Stockholm, Sweden","Gothenburg, Sweden","Malmö, Sweden","Oslo, Norway","Bergen, Norway","Copenhagen, Denmark","Aarhus, Denmark","Helsinki, Finland","Espoo, Finland","Reykjavik, Iceland",
+
+"Warsaw, Poland","Kraków, Poland","Łódź, Poland","Wrocław, Poland","Poznań, Poland","Gdańsk, Poland",
+"Prague, Czech Republic","Brno, Czech Republic","Budapest, Hungary","Bucharest, Romania","Cluj-Napoca, Romania",
+"Athens, Greece","Thessaloniki, Greece",
+
+"Moscow, Russia","Saint Petersburg, Russia","Novosibirsk, Russia","Yekaterinburg, Russia","Kazan, Russia",
+"Kyiv, Ukraine","Kharkiv, Ukraine","Odesa, Ukraine","Lviv, Ukraine",
+"Istanbul, Turkey","Ankara, Turkey","Izmir, Turkey",
+"Vilnius, Lithuania","Riga, Latvia","Tallinn, Estonia",
+"Zagreb, Croatia","Belgrade, Serbia","Sofia, Bulgaria","Sarajevo, Bosnia and Herzegovina","Ljubljana, Slovenia","Bratislava, Slovakia","Skopje, North Macedonia",
+
+"Dubai, UAE","Abu Dhabi, UAE","Riyadh, Saudi Arabia","Jeddah, Saudi Arabia","Doha, Qatar","Kuwait City, Kuwait","Manama, Bahrain","Muscat, Oman",
+"Tel Aviv, Israel","Jerusalem, Israel","Amman, Jordan","Beirut, Lebanon","Baghdad, Iraq","Tehran, Iran",
+
+"Cairo, Egypt","Alexandria, Egypt","Lagos, Nigeria","Abuja, Nigeria","Nairobi, Kenya","Addis Ababa, Ethiopia","Accra, Ghana","Casablanca, Morocco","Rabat, Morocco","Tunis, Tunisia",
+"Algiers, Algeria","Johannesburg, South Africa","Cape Town, South Africa","Durban, South Africa","Pretoria, South Africa","Dakar, Senegal","Kampala, Uganda","Dar es Salaam, Tanzania","Kigali, Rwanda","Lusaka, Zambia",
+"Harare, Zimbabwe","Maputo, Mozambique","Luanda, Angola","Khartoum, Sudan",
+
+"Mumbai, India","Delhi, India","Bangalore, India","Hyderabad, India","Chennai, India","Kolkata, India","Pune, India","Ahmedabad, India","Jaipur, India","Surat, India",
+"Lucknow, India","Kanpur, India","Karachi, Pakistan","Lahore, Pakistan","Islamabad, Pakistan","Dhaka, Bangladesh","Chittagong, Bangladesh","Colombo, Sri Lanka","Kathmandu, Nepal",
+
+"Singapore","Bangkok, Thailand","Jakarta, Indonesia","Surabaya, Indonesia","Manila, Philippines","Quezon City, Philippines","Cebu City, Philippines","Kuala Lumpur, Malaysia","Penang, Malaysia",
+"Ho Chi Minh City, Vietnam","Hanoi, Vietnam","Phnom Penh, Cambodia","Vientiane, Laos","Yangon, Myanmar",
+
+"Tokyo, Japan","Osaka, Japan","Yokohama, Japan","Nagoya, Japan","Sapporo, Japan","Fukuoka, Japan","Kyoto, Japan","Kobe, Japan",
+"Seoul, South Korea","Busan, South Korea","Incheon, South Korea",
+"Beijing, China","Shanghai, China","Guangzhou, China","Shenzhen, China","Chengdu, China","Chongqing, China","Xi'an, China","Wuhan, China","Hangzhou, China","Nanjing, China","Tianjin, China",
+"Hong Kong","Macau","Taipei, Taiwan","Kaohsiung, Taiwan","Ulaanbaatar, Mongolia",
+
+"Sydney, Australia","Melbourne, Australia","Brisbane, Australia","Perth, Australia","Adelaide, Australia","Canberra, Australia","Gold Coast, Australia",
+"Auckland, New Zealand","Wellington, New Zealand","Christchurch, New Zealand",
+
+"São Paulo, Brazil","Rio de Janeiro, Brazil","Brasília, Brazil","Salvador, Brazil","Fortaleza, Brazil","Belo Horizonte, Brazil","Manaus, Brazil","Curitiba, Brazil","Recife, Brazil","Porto Alegre, Brazil",
+"Buenos Aires, Argentina","Córdoba, Argentina","Rosario, Argentina","Santiago, Chile","Valparaíso, Chile","Lima, Peru","Arequipa, Peru",
+"Bogotá, Colombia","Medellín, Colombia","Cali, Colombia","Caracas, Venezuela","Quito, Ecuador","Guayaquil, Ecuador","La Paz, Bolivia","Santa Cruz, Bolivia","Asunción, Paraguay","Montevideo, Uruguay",
+
+"Panama City, Panama","San José, Costa Rica","Guatemala City, Guatemala","San Salvador, El Salvador","Tegucigalpa, Honduras","Managua, Nicaragua",
+"Havana, Cuba","Santo Domingo, Dominican Republic","San Juan, Puerto Rico","Kingston, Jamaica","Port-au-Prince, Haiti","Nassau, Bahamas"
+]

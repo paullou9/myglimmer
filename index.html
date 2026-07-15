@@ -430,7 +430,7 @@
   ::placeholder { font-family: 'Times New Roman', Times, serif; }
 
   /* Optional city share in the composer */
-  .location-row { margin-top: 6px; }
+  .location-row { margin-top: 6px; display: flex; align-items: center; gap: 8px; }
   .location-toggle {
     display: inline-flex;
     align-items: center;
@@ -454,6 +454,41 @@
     stroke-linejoin: round; stroke-linecap: round;
   }
   .location-toggle.active .loc-icon { fill: rgba(219,155,29,0.25); }
+  /* Inline city correction — swaps in for the pill so a wrong (or missing)
+     auto-detected city is always a tap away from being fixed by hand. */
+  .location-input {
+    flex: 1;
+    max-width: 200px;
+    background: rgba(219,155,29,0.08);
+    border: 1px solid rgba(219,155,29,0.4);
+    border-radius: 100px;
+    padding: 6px 13px;
+    font-family: 'Albert Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .location-input:focus { outline: none; border-color: var(--amber); }
+  .location-clear {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 26px; height: 26px;
+    background: none;
+    border: none;
+    border-radius: 50%;
+    cursor: pointer;
+    color: var(--ink-light);
+    transition: color 0.2s, background 0.2s;
+  }
+  .location-clear:hover { color: var(--ink); background: var(--cream); }
+  .location-clear svg {
+    width: 13px; height: 13px;
+    fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round;
+  }
+  /* The `display` rules above have the same specificity as the UA [hidden]
+     rule, and author styles win ties regardless of source order — so
+     toggling the `hidden` attribute alone wouldn't actually hide these. */
+  .location-toggle[hidden], .location-input[hidden], .location-clear[hidden] { display: none; }
 
   .compose-footer {
     display: flex;
@@ -820,6 +855,17 @@
 
   .modal h3 { font-family: 'Instrument Serif', serif; font-size: 22px; margin-bottom: 8px; }
   .modal p { font-size: 13px; color: var(--ink-light); line-height: 1.5; margin-bottom: 20px; }
+  .modal p a { color: var(--amber); font-weight: 600; text-decoration: none; }
+  .modal p a:hover { text-decoration: underline; }
+  .about-avatar {
+    display: block;
+    width: 72px;
+    height: 72px;
+    border-radius: 50%;
+    object-fit: cover;
+    margin: 0 auto 14px;
+    border: 2px solid var(--border);
+  }
 
   /* ── Calendar modal (Mine tab) ────────────────────────────────────────────── */
   .calendar-modal { max-width: 340px; }
@@ -1655,12 +1701,20 @@
       <span class="prompt-label">My glimmer of the day was...</span>
       <textarea id="glimmerInput" placeholder="a stranger held the door open and smiled at me" maxlength="180" oninput="onInput()" rows="3"></textarea>
       <div class="location-row">
-        <button type="button" class="location-toggle" id="locationToggle" onclick="toggleLocation()" aria-pressed="false">
+        <button type="button" class="location-toggle" id="locationToggle" onclick="onLocationClick()" aria-pressed="false">
           <svg class="loc-icon" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M12 21.5s-6.6-5.3-6.6-10.6a6.6 6.6 0 0 1 13.2 0c0 5.3-6.6 10.6-6.6 10.6Z"/>
             <circle cx="12" cy="10.6" r="2.4"/>
           </svg>
           <span id="locationLabel">Add my city</span>
+        </button>
+        <input type="text" class="location-input" id="locationInput" maxlength="60"
+          placeholder="Type your city" hidden list="cityList" autocomplete="off"
+          onkeydown="onLocationInputKeydown(event)" onblur="commitLocationEdit()">
+        <datalist id="cityList"></datalist>
+        <button type="button" class="location-clear" id="locationClearBtn" onclick="resetLocation()"
+          aria-label="Remove city" hidden>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
         </button>
       </div>
       <div class="compose-footer">
@@ -1725,6 +1779,27 @@
   </div>
 </div>
 
+<!-- ── About Me modal ─────────────────────────────────────────────────────────── -->
+<div class="modal-overlay" id="aboutMeModal" onclick="if(event.target===this)closeAboutMe()">
+  <div class="modal">
+    <img class="about-avatar" src="paul-lou.jpg" alt="Paul Lou">
+    <h3>About</h3>
+    <p>
+      Created by Paul Lou. I'm an operator and product strategist who lives in Brooklyn, New York.
+      I've been working in consumer-led companies like Uber and Meta since 2019. I enjoy building
+      with empathy and solving for user needs. In my free time, I enjoy meditation, yoga, CrossFit,
+      reading, and writing on Substack.
+    </p>
+    <p>
+      If you'd like to collaborate, feel free to send me a message on
+      <a href="https://www.linkedin.com/in/paullou1/" target="_blank" rel="noopener noreferrer">LinkedIn</a>.
+    </p>
+    <div class="modal-actions">
+      <button class="btn-secondary" onclick="closeAboutMe()">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- ── iOS "Add to Home Screen" instruction sheet ────────────────────────────── -->
 <div class="modal-overlay" id="iosInstallModal" onclick="if(event.target===this)closeIosInstall()">
   <div class="modal">
@@ -1767,11 +1842,17 @@
     <span class="drawer-title">Menu</span>
     <button class="drawer-close" onclick="closeMenu()" aria-label="Close menu">✕</button>
   </div>
-  <button class="drawer-item" onclick="menuAbout()">
+  <button class="drawer-item" onclick="menuAboutMe()">
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <circle cx="12" cy="12" r="8.5"/><path d="M12 11v5"/><circle cx="12" cy="8" r="0.6" fill="currentColor" stroke="none"/>
     </svg>
     About
+  </button>
+  <button class="drawer-item" onclick="menuAbout()">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M4 6c2.5-1.2 5.5-1.2 8 0v12c-2.5-1.2-5.5-1.2-8 0Z"/><path d="M20 6c-2.5-1.2-5.5-1.2-8 0v12c2.5-1.2 5.5-1.2 8 0Z"/>
+    </svg>
+    Our Story
   </button>
   <button class="drawer-item" onclick="menuShareFeedback()">
     <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -1990,10 +2071,58 @@ function onInput() {
 }
 
 // ─── Moderation (client-side pre-filter) ────────────────────────────────────
-const blocklist = ['kill yourself','kys','nigger','faggot'];
+// This is a UX-layer filter only — instant feedback before a network round trip.
+// The actual enforcement lives in a Postgres trigger on glimmers/comments (see
+// docs/deferred-usernames-and-security.md, "Content moderation hardening"), so
+// this cannot be relied on alone: anyone can bypass client JS and hit the API
+// directly with the public anon key.
+const MODERATION_BLOCKLIST = [
+  // Hate speech / slurs
+  'nigger','nigga','faggot','fag','tranny','retard','spic','kike','chink','gook','wetback','beaner','coon','dyke',
+  // Self-harm / suicide encouragement
+  'kill yourself','kys','kill urself','end your life','you should die','go die','commit suicide',
+  // Violence / threats — deliberately excludes ambiguous phrases like "school
+  // shooting" (collides with innocent "shooting hoops after school" style posts)
+  'i will kill you','ill kill you','bomb threat','shoot up the school',
+  // Sexual exploitation of minors — zero tolerance
+  'child porn','cp link','underage sex','minor sex',
+];
+
+// Collapses common evasion tricks (leetspeak, punctuation spacing, stretched
+// letters, accents) down to a plain lowercase form before matching, so
+// "k.y.s", "k y s", and "kyssss" all still hit the same blocklist entry.
+function normalizeForModeration(text) {
+  return text
+    .toLowerCase()
+    .normalize('NFKD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/@/g, 'a').replace(/0/g, 'o').replace(/[1!|]/g, 'i')
+    .replace(/3/g, 'e').replace(/4/g, 'a').replace(/[5$]/g, 's')
+    .replace(/[^a-z0-9\s]/g, ' ')
+    .replace(/(.)\1{2,}/g, '$1$1')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Keeps this an anonymous, contact-free space — no links, emails, or phone
+// numbers in posts (also blunts spam/scam content).
+const URL_PATTERN = /\b(?:https?:\/\/|www\.)\S+/i;
+const EMAIL_PATTERN = /[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/i;
+const PHONE_PATTERN = /\b(?:\+?\d[\s.-]?){9,}\b/;
+
 function moderateText(text) {
-  const lower = text.toLowerCase();
-  return blocklist.some(w => lower.includes(w));
+  const normalized = normalizeForModeration(text);
+  // Fully-squeezed (no spaces at all) form — only used for short single-token
+  // entries, to catch letter-by-letter evasion ("k.y.s") without risking a
+  // longer phrase ("school shooting") false-matching across two unrelated
+  // words that just happen to land next to each other once spaces are gone.
+  const compact = normalized.replace(/\s+/g, '');
+  const hit = MODERATION_BLOCKLIST.some(w => {
+    const nw = normalizeForModeration(w);
+    if (normalized.includes(nw)) return true;
+    return !nw.includes(' ') && nw.length <= 6 && compact.includes(nw);
+  });
+  if (hit) return true;
+  return URL_PATTERN.test(text) || EMAIL_PATTERN.test(text) || PHONE_PATTERN.test(text);
 }
 
 // ─── Compose modal (opened from the floating button) ─────────────────────────
@@ -2006,48 +2135,145 @@ function openCompose() {
   resetLocation();
   document.getElementById('composeOverlay').classList.add('open');
   setTimeout(() => document.getElementById('glimmerInput').focus(), 60);
+  ensureCityList();
 }
 
 function closeCompose() {
   document.getElementById('composeOverlay').classList.remove('open');
 }
 
-// ─── Optional city share (opt-in, IP-based, coarse) ──────────────────────────
+// ─── Optional city share (opt-in; GPS first, IP as fallback, always editable) ─
+// Auto-detect is a suggestion, never a fact: whatever city we land on
+// (device GPS, IP lookup, or neither) is shown as editable so a wrong guess
+// — e.g. carrier NAT mapping a phone to the wrong metro — is a one-tap fix.
 let composeCity = null;
+let locationEditCancelled = false;
+let cityListLoaded = false;
+
+// Lightweight offline city suggestions for the manual-entry field — a bundled
+// list of ~500 major cities, not a live geocoding API. MVP tradeoff: covers
+// the common case (typing "San Fran..." finds it) without the cost/complexity
+// of Mapbox or Google Places; revisit if that stops being enough.
+async function ensureCityList() {
+  if (cityListLoaded) return;
+  cityListLoaded = true;
+  try {
+    const res = await fetch('cities.json');
+    if (!res.ok) throw new Error('city list fetch failed');
+    const cities = await res.json();
+    document.getElementById('cityList').innerHTML =
+      cities.map(c => `<option value="${escapeHtml(c)}">`).join('');
+  } catch (e) {
+    cityListLoaded = false; // allow a retry next time the composer opens
+  }
+}
 
 function resetLocation() {
   composeCity = null;
   const btn = document.getElementById('locationToggle');
   const label = document.getElementById('locationLabel');
-  if (btn) { btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); btn.disabled = false; }
+  const input = document.getElementById('locationInput');
+  const clearBtn = document.getElementById('locationClearBtn');
+  if (btn) { btn.hidden = false; btn.classList.remove('active'); btn.setAttribute('aria-pressed', 'false'); btn.disabled = false; }
   if (label) label.textContent = 'Add my city';
+  if (input) { input.hidden = true; input.value = ''; }
+  if (clearBtn) clearBtn.hidden = true;
 }
 
-async function toggleLocation() {
+function setLocationActive(city) {
+  composeCity = city;
   const btn = document.getElementById('locationToggle');
   const label = document.getElementById('locationLabel');
+  const input = document.getElementById('locationInput');
+  const clearBtn = document.getElementById('locationClearBtn');
+  btn.hidden = false;
+  btn.disabled = false;
+  btn.classList.add('active');
+  btn.setAttribute('aria-pressed', 'true');
+  label.textContent = city;
+  input.hidden = true;
+  clearBtn.hidden = false;
+}
 
-  if (btn.classList.contains('active')) { resetLocation(); return; }
+// Clicking the pill: idle → run detection; already has a city → edit it.
+function onLocationClick() {
+  const btn = document.getElementById('locationToggle');
+  if (btn.classList.contains('active')) { openLocationEdit(); return; }
+  detectLocation();
+}
 
-  // Look up the city from the request IP — no GPS prompt, naturally coarse.
+function openLocationEdit() {
+  const btn = document.getElementById('locationToggle');
+  const input = document.getElementById('locationInput');
+  input.value = composeCity || '';
+  btn.hidden = true;
+  input.hidden = false;
+  input.focus();
+  input.select();
+}
+
+function onLocationInputKeydown(e) {
+  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('locationInput').blur(); }
+  else if (e.key === 'Escape') { e.preventDefault(); locationEditCancelled = true; document.getElementById('locationInput').blur(); }
+}
+
+function commitLocationEdit() {
+  if (locationEditCancelled) {
+    locationEditCancelled = false;
+    if (composeCity) setLocationActive(composeCity); else resetLocation();
+    return;
+  }
+  const typed = document.getElementById('locationInput').value.trim();
+  if (typed) setLocationActive(typed); else resetLocation();
+}
+
+// GPS (accurate, needs permission) first; IP lookup (coarse, silent) as a
+// fallback for denied/unsupported geolocation; manual entry as the last resort
+// so a failed detection is never a dead end.
+async function detectLocation() {
+  const btn = document.getElementById('locationToggle');
+  const label = document.getElementById('locationLabel');
   label.textContent = 'Locating…';
   btn.disabled = true;
+
+  const city = await detectCityByGPS() || await detectCityByIP();
+  btn.disabled = false;
+
+  if (city) { setLocationActive(city); return; }
+
+  label.textContent = "Couldn't auto-detect";
+  setTimeout(openLocationEdit, 700);
+}
+
+function detectCityByGPS() {
+  return new Promise((resolve) => {
+    if (!navigator.geolocation) { resolve(null); return; }
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(`https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=${latitude}&longitude=${longitude}&localityLanguage=en`);
+          if (!res.ok) throw new Error('reverse geocode failed');
+          const data = await res.json();
+          const city = (data.city || data.locality || '').trim();
+          resolve(city || null);
+        } catch (e) { resolve(null); }
+      },
+      () => resolve(null), // permission denied, unavailable, or timed out
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
+    );
+  });
+}
+
+async function detectCityByIP() {
   try {
     const res = await fetch('https://ipapi.co/json/');
     if (!res.ok) throw new Error('lookup failed');
     const data = await res.json();
     const city = (data && data.city ? String(data.city) : '').trim();
-    if (!city) throw new Error('no city');
-    composeCity = city;
-    btn.classList.add('active');
-    btn.setAttribute('aria-pressed', 'true');
-    label.textContent = city;
+    return city || null;
   } catch (e) {
-    composeCity = null;
-    label.textContent = "Couldn't find your city";
-    setTimeout(() => { if (!btn.classList.contains('active')) label.textContent = 'Add my city'; }, 2500);
-  } finally {
-    btn.disabled = false;
+    return null;
   }
 }
 
@@ -2558,6 +2784,15 @@ function closeAbout() {
 
 function menuAbout() { closeMenu(); openAbout(); }
 
+// ─── About Me ───────────────────────────────────────────────────────────────
+function openAboutMe() {
+  document.getElementById('aboutMeModal').classList.add('open');
+}
+function closeAboutMe() {
+  document.getElementById('aboutMeModal').classList.remove('open');
+}
+function menuAboutMe() { closeMenu(); openAboutMe(); }
+
 // ─── Feedback ─────────────────────────────────────────────────────────────────
 function openFeedback() {
   document.getElementById('feedbackModal').classList.add('open');
@@ -2652,11 +2887,12 @@ function closeIosInstall() {
   document.getElementById('iosInstallModal').classList.remove('open');
 }
 
-// Close the drawer / feedback / iOS-install modals / About page with Escape.
+// Close the drawer / feedback / iOS-install / About Me modals / About page with Escape.
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (document.getElementById('menuDrawer').classList.contains('open')) closeMenu();
   if (document.getElementById('feedbackModal').classList.contains('open')) closeFeedback();
+  if (document.getElementById('aboutMeModal').classList.contains('open')) closeAboutMe();
   if (document.getElementById('iosInstallModal').classList.contains('open')) closeIosInstall();
   if (aboutActive) closeAbout();
 });
