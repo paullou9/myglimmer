@@ -456,9 +456,9 @@
   .location-toggle.active .loc-icon { fill: rgba(219,155,29,0.25); }
   /* Inline city correction — swaps in for the pill so a wrong (or missing)
      auto-detected city is always a tap away from being fixed by hand. */
+  .location-input-wrap { position: relative; flex: 1; max-width: 200px; }
   .location-input {
-    flex: 1;
-    max-width: 200px;
+    width: 100%;
     background: rgba(219,155,29,0.08);
     border: 1px solid rgba(219,155,29,0.4);
     border-radius: 100px;
@@ -468,6 +468,34 @@
     color: var(--ink);
   }
   .location-input:focus { outline: none; border-color: var(--amber); }
+  /* Custom typeahead dropdown — replaces the native <datalist>, which
+     chokes on rendering/filtering tens of thousands of options smoothly. */
+  .city-suggestions {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    margin: 0;
+    padding: 4px;
+    list-style: none;
+    background: var(--warm-white);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    box-shadow: var(--shadow-lift);
+    max-height: 200px;
+    overflow-y: auto;
+    z-index: 20;
+  }
+  .city-suggestions[hidden] { display: none; }
+  .city-suggestion {
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-family: 'Albert Sans', sans-serif;
+    font-size: 13px;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .city-suggestion.active, .city-suggestion:hover { background: rgba(219,155,29,0.12); color: var(--amber); }
   .location-clear {
     display: inline-flex;
     align-items: center;
@@ -1708,10 +1736,13 @@
           </svg>
           <span id="locationLabel">Add my city</span>
         </button>
-        <input type="text" class="location-input" id="locationInput" maxlength="60"
-          placeholder="Type your city" hidden list="cityList" autocomplete="off"
-          onkeydown="onLocationInputKeydown(event)" onblur="commitLocationEdit()">
-        <datalist id="cityList"></datalist>
+        <div class="location-input-wrap">
+          <input type="text" class="location-input" id="locationInput" maxlength="60"
+            placeholder="Type your city" hidden autocomplete="off"
+            role="combobox" aria-expanded="false" aria-autocomplete="list" aria-controls="citySuggestions"
+            oninput="onLocationInput()" onkeydown="onLocationInputKeydown(event)" onblur="commitLocationEdit()">
+          <ul class="city-suggestions" id="citySuggestions" role="listbox" hidden></ul>
+        </div>
         <button type="button" class="location-clear" id="locationClearBtn" onclick="resetLocation()"
           aria-label="Remove city" hidden>
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
@@ -2142,27 +2173,30 @@ function closeCompose() {
   document.getElementById('composeOverlay').classList.remove('open');
 }
 
-// ─── Optional city share (opt-in; GPS first, IP as fallback, always editable) ─
-// Auto-detect is a suggestion, never a fact: whatever city we land on
-// (device GPS, IP lookup, or neither) is shown as editable so a wrong guess
-// — e.g. carrier NAT mapping a phone to the wrong metro — is a one-tap fix.
+// ─── Optional city share (opt-in; GPS only, always editable) ─
+// Auto-detect is a suggestion, never a fact: whatever city GPS lands on
+// is shown as editable so a wrong guess is a one-tap fix. No IP-based
+// fallback — it resolves to carrier/ISP infrastructure (e.g. a phone on
+// Ashburn, VA's IP block), not the device, so it's silently wrong too
+// often to auto-apply. GPS failing goes straight to manual entry instead.
 let composeCity = null;
 let locationEditCancelled = false;
 let cityListLoaded = false;
+let allCities = [];
+let currentSuggestions = [];
+let citySuggestionIndex = -1;
 
-// Lightweight offline city suggestions for the manual-entry field — a bundled
-// list of ~500 major cities, not a live geocoding API. MVP tradeoff: covers
-// the common case (typing "San Fran..." finds it) without the cost/complexity
-// of Mapbox or Google Places; revisit if that stops being enough.
+// Worldwide city list (~33k cities, population ≥15,000, via GeoNames) for
+// the manual-entry field's typeahead — not a live geocoding API. Loaded
+// once per session; filtering happens entirely client-side in
+// filterCities(). Revisit if that stops being enough.
 async function ensureCityList() {
   if (cityListLoaded) return;
   cityListLoaded = true;
   try {
     const res = await fetch('cities.json');
     if (!res.ok) throw new Error('city list fetch failed');
-    const cities = await res.json();
-    document.getElementById('cityList').innerHTML =
-      cities.map(c => `<option value="${escapeHtml(c)}">`).join('');
+    allCities = await res.json();
   } catch (e) {
     cityListLoaded = false; // allow a retry next time the composer opens
   }
@@ -2178,6 +2212,7 @@ function resetLocation() {
   if (label) label.textContent = 'Add my city';
   if (input) { input.hidden = true; input.value = ''; }
   if (clearBtn) clearBtn.hidden = true;
+  closeCitySuggestions();
 }
 
 function setLocationActive(city) {
@@ -2193,6 +2228,7 @@ function setLocationActive(city) {
   label.textContent = city;
   input.hidden = true;
   clearBtn.hidden = false;
+  closeCitySuggestions();
 }
 
 // Clicking the pill: idle → run detection; already has a city → edit it.
@@ -2212,12 +2248,101 @@ function openLocationEdit() {
   input.select();
 }
 
+// Prefix matches rank above mid-string matches; allCities is pre-sorted by
+// population, so ties within each tier keep the more likely (bigger) city
+// first. Capped at 8 so the dropdown never needs its own scroll-heavy DOM.
+function filterCities(query) {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const starts = [];
+  const contains = [];
+  for (let i = 0; i < allCities.length && starts.length < 8; i++) {
+    const city = allCities[i];
+    const idx = city.toLowerCase().indexOf(q);
+    if (idx === 0) starts.push(city);
+    else if (idx > 0 && contains.length < 8) contains.push(city);
+  }
+  return starts.concat(contains).slice(0, 8);
+}
+
+function renderCitySuggestions(matches) {
+  currentSuggestions = matches;
+  citySuggestionIndex = -1;
+  const list = document.getElementById('citySuggestions');
+  const input = document.getElementById('locationInput');
+  if (!matches.length) { closeCitySuggestions(); return; }
+  list.innerHTML = matches.map((c, i) =>
+    `<li class="city-suggestion" role="option" data-index="${i}">${escapeHtml(c)}</li>`
+  ).join('');
+  list.hidden = false;
+  input.setAttribute('aria-expanded', 'true');
+}
+
+function closeCitySuggestions() {
+  const list = document.getElementById('citySuggestions');
+  const input = document.getElementById('locationInput');
+  if (list) { list.hidden = true; list.innerHTML = ''; }
+  if (input) input.setAttribute('aria-expanded', 'false');
+  currentSuggestions = [];
+  citySuggestionIndex = -1;
+}
+
+function highlightSuggestion(index) {
+  const list = document.getElementById('citySuggestions');
+  if (!list) return;
+  Array.prototype.forEach.call(list.children, (el, i) => el.classList.toggle('active', i === index));
+  const active = list.children[index];
+  if (active) active.scrollIntoView({ block: 'nearest' });
+}
+
+function onLocationInput() {
+  renderCitySuggestions(filterCities(document.getElementById('locationInput').value));
+}
+
+function selectCitySuggestion(city) {
+  // setLocationActive() hides the input, and hiding a focused element forces
+  // its own blur — so input.value must already match `city` before that
+  // happens, or the resulting commitLocationEdit() re-commits stale typed text.
+  document.getElementById('locationInput').value = city;
+  setLocationActive(city);
+}
+
+// Delegated so it works for suggestion rows rendered after this listener is
+// attached. mousedown (not click) + preventDefault stops the input from
+// blurring before the selection is read — blur would otherwise race ahead
+// of a click and commit the typed text instead of the tapped suggestion.
+document.getElementById('citySuggestions').addEventListener('mousedown', (e) => {
+  const li = e.target.closest('.city-suggestion');
+  if (!li) return;
+  e.preventDefault();
+  selectCitySuggestion(currentSuggestions[Number(li.dataset.index)]);
+});
+
 function onLocationInputKeydown(e) {
-  if (e.key === 'Enter') { e.preventDefault(); document.getElementById('locationInput').blur(); }
-  else if (e.key === 'Escape') { e.preventDefault(); locationEditCancelled = true; document.getElementById('locationInput').blur(); }
+  const list = document.getElementById('citySuggestions');
+  const open = list && !list.hidden;
+
+  if (e.key === 'ArrowDown' && open) {
+    e.preventDefault();
+    citySuggestionIndex = Math.min(citySuggestionIndex + 1, currentSuggestions.length - 1);
+    highlightSuggestion(citySuggestionIndex);
+  } else if (e.key === 'ArrowUp' && open) {
+    e.preventDefault();
+    citySuggestionIndex = Math.max(citySuggestionIndex - 1, -1);
+    highlightSuggestion(citySuggestionIndex);
+  } else if (e.key === 'Enter') {
+    e.preventDefault();
+    if (open && citySuggestionIndex >= 0) selectCitySuggestion(currentSuggestions[citySuggestionIndex]);
+    else document.getElementById('locationInput').blur();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    locationEditCancelled = true;
+    document.getElementById('locationInput').blur();
+  }
 }
 
 function commitLocationEdit() {
+  closeCitySuggestions();
   if (locationEditCancelled) {
     locationEditCancelled = false;
     if (composeCity) setLocationActive(composeCity); else resetLocation();
@@ -2227,16 +2352,16 @@ function commitLocationEdit() {
   if (typed) setLocationActive(typed); else resetLocation();
 }
 
-// GPS (accurate, needs permission) first; IP lookup (coarse, silent) as a
-// fallback for denied/unsupported geolocation; manual entry as the last resort
-// so a failed detection is never a dead end.
+// GPS (accurate, needs permission) only; manual entry is the fallback for
+// denied/unsupported/timed-out geolocation so a failed detection is never
+// a dead end — and never silently replaced with a coarse IP guess.
 async function detectLocation() {
   const btn = document.getElementById('locationToggle');
   const label = document.getElementById('locationLabel');
   label.textContent = 'Locating…';
   btn.disabled = true;
 
-  const city = await detectCityByGPS() || await detectCityByIP();
+  const city = await detectCityByGPS();
   btn.disabled = false;
 
   if (city) { setLocationActive(city); return; }
@@ -2263,18 +2388,6 @@ function detectCityByGPS() {
       { enableHighAccuracy: false, timeout: 8000, maximumAge: 300000 }
     );
   });
-}
-
-async function detectCityByIP() {
-  try {
-    const res = await fetch('https://ipapi.co/json/');
-    if (!res.ok) throw new Error('lookup failed');
-    const data = await res.json();
-    const city = (data && data.city ? String(data.city) : '').trim();
-    return city || null;
-  } catch (e) {
-    return null;
-  }
 }
 
 // Reflect the "already shared today" state on the floating button.
