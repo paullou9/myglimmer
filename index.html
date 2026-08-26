@@ -6,6 +6,29 @@
 <title>myglimmer — one small joy, shared with the world</title>
 <meta name="description" content="Share one thing that gave you joy today. Anonymous, fleeting, real.">
 
+<link rel="canonical" href="https://myglimmer.day/">
+
+<!-- ── Social share cards ───────────────────────────────────────────────────── -->
+<!-- og:image must be absolute; crawlers do not resolve relative paths. Bump the
+     ?v= query when the artwork changes — Facebook and iMessage cache hard. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="myglimmer">
+<meta property="og:url" content="https://myglimmer.day/">
+<meta property="og:title" content="One beautiful thing. Every day.">
+<meta property="og:description" content="Share something small and good that happened to you today, then see what strangers around the world noticed. Anonymous. Once a day. 100% human.">
+<meta property="og:image" content="https://myglimmer.day/og-image.png?v=1">
+<meta property="og:image:type" content="image/png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="myglimmer — One beautiful thing. Every day.">
+<meta property="og:locale" content="en_US">
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="One beautiful thing. Every day.">
+<meta name="twitter:description" content="Share something small and good that happened to you today, then see what strangers around the world noticed. Anonymous. Once a day. 100% human.">
+<meta name="twitter:image" content="https://myglimmer.day/og-image.png?v=1">
+<meta name="twitter:image:alt" content="myglimmer — One beautiful thing. Every day.">
+
 <!-- ── Add to Home Screen / PWA ─────────────────────────────────────────────── -->
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="theme-color" content="#DB9B1D">
@@ -1172,6 +1195,39 @@
   }
   .success-ok:hover { background: #B8811A; transform: translateY(-1px); }
 
+  /* Secondary share prompt. Kept visually subordinate to OK so the moment stays
+     about the glimmer they just posted, not about recruiting. */
+  .success-share {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin-top: 10px;
+    padding: 11px;
+    border: none;
+    border-radius: 100px;
+    background: none;
+    color: var(--ink-light);
+    font-family: 'Albert Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: color 0.15s, background 0.15s;
+  }
+  .success-share svg {
+    width: 16px;
+    height: 16px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .success-share:hover { color: var(--ink); background: var(--cream); }
+  /* display:flex above would otherwise defeat the hidden attribute. */
+  .success-share[hidden] { display: none; }
+
   /* ── Floating compose button (FAB) ────────────────────────────────────────── */
   .fab {
     position: fixed;
@@ -1885,6 +1941,13 @@
     </svg>
     About
   </button>
+  <button class="drawer-item" onclick="menuTellFriend()">
+    <svg viewBox="0 0 24 24" aria-hidden="true">
+      <circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/>
+      <path d="M8.4 10.8 L15.6 6.7"/><path d="M8.4 13.2 L15.6 17.3"/>
+    </svg>
+    Tell a friend
+  </button>
   <button class="drawer-item" onclick="menuShareFeedback()">
     <svg viewBox="0 0 24 24" aria-hidden="true">
       <path d="M5 5 h14 a1 1 0 0 1 1 1 v9 a1 1 0 0 1-1 1 H10 l-4 3.5 V16 H5 a1 1 0 0 1-1-1 V6 a1 1 0 0 1 1-1 Z"/>
@@ -1909,6 +1972,13 @@
     <h3>Shared</h3>
     <p id="successMsg">You just shared your glimmer with the world!</p>
     <button class="success-ok" onclick="closeShareSuccess()">OK</button>
+    <button class="success-share" id="successShareBtn" onclick="shareApp()" hidden>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="18" cy="5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="19" r="2.6"/>
+        <path d="M8.4 10.8 L15.6 6.7"/><path d="M8.4 13.2 L15.6 17.3"/>
+      </svg>
+      Tell a friend
+    </button>
   </div>
 </div>
 
@@ -2789,6 +2859,10 @@ function showShareSuccess() {
       ? 'You just shared your first glimmer. Now — see what strangers noticed today.'
       : 'You just shared your glimmer with the world!';
   }
+  // Earn the ask: a first-timer hasn't seen the payoff yet, so the share prompt
+  // stays hidden until their second glimmer.
+  const shareBtn = document.getElementById('successShareBtn');
+  if (shareBtn) shareBtn.hidden = landingActive;
   // Re-trigger the draw-in animation each time by reflowing the animated paths.
   m.querySelectorAll('.success-check .ring, .success-check .tick').forEach(el => {
     el.style.animation = 'none';
@@ -2956,6 +3030,59 @@ function closeMenu() {
 }
 function menuShareFeedback() { closeMenu(); openFeedback(); }
 function menuAddToHome() { closeMenu(); onInstallClick(); }
+function menuTellFriend() { closeMenu(); shareApp(); }
+
+// ─── Tell a friend ───────────────────────────────────────────────────────────
+// The shared link carries UTM params so these visits land in `visits` next to
+// every other source and the share button can be judged on its own numbers.
+// og:url and rel=canonical stay clean, so platforms still resolve every share
+// to the same card rather than treating each one as a separate page.
+const SHARE_URL =
+  'https://myglimmer.day/?utm_source=share&utm_medium=app&utm_campaign=tell_a_friend';
+
+// Fallback for browsers without the async clipboard API (non-secure contexts,
+// older Safari). Returns whether the copy actually landed.
+function legacyCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text;
+  ta.setAttribute('readonly', '');
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0;pointer-events:none';
+  document.body.appendChild(ta);
+  ta.select();
+  let ok = false;
+  try { ok = document.execCommand('copy'); } catch (e) {}
+  document.body.removeChild(ta);
+  return ok;
+}
+
+// Native share sheet where it exists, clipboard everywhere else. Must stay
+// synchronous up to the navigator.share() call — it needs the user gesture,
+// and closeMenu() above is synchronous so the gesture is still live.
+async function shareApp() {
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: 'myglimmer',
+        text: 'One beautiful thing. Every day.',
+        url: SHARE_URL,
+      });
+      return;
+    } catch (err) {
+      // Dismissing the sheet is a decision, not a failure — don't nag with a
+      // toast or silently copy something they chose not to send.
+      if (err && err.name === 'AbortError') return;
+      // Anything else (unsupported payload, permission policy): fall through so
+      // they still leave with a link.
+    }
+  }
+  try {
+    await navigator.clipboard.writeText(SHARE_URL);
+    showToast('Link copied — paste it anywhere');
+  } catch (err) {
+    showToast(legacyCopy(SHARE_URL) ? 'Link copied — paste it anywhere'
+                                    : 'Copy the link from your address bar');
+  }
+}
 
 // ─── Add to Home Screen / install ────────────────────────────────────────────
 let deferredPrompt = null;
